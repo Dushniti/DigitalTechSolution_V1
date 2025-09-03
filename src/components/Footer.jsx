@@ -31,10 +31,10 @@ const Footer = () => {
 
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="container-custom">
+      <div className="container-custom px-4 sm:px-6 lg:px-8 mx-auto">
         {/* Main Footer Content */}
-        <div className="py-16">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="py-12 sm:py-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {/* Company Info */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -201,10 +201,10 @@ const Footer = () => {
           className="border-t border-gray-800 py-6"
         >
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-gray-400">
+            <p className="text-gray-400 text-center md:text-left">
               © {currentYear} DigitalTechSolution. All rights reserved.
             </p>
-            <div className="flex space-x-6 text-sm">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-sm text-center md:text-right">
               <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">
                 Privacy Policy
               </a>

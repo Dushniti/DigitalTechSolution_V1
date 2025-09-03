@@ -20,8 +20,8 @@ const Navbar = () => {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200"
     >
-      <div className="container-custom">
-        <div className="flex items-center justify-between h-16">
+      <div className="container-custom px-4 sm:px-6 lg:px-8 mx-auto">
+        <div className="flex flex-wrap items-center justify-between h-16">
           {/* Logo */}
           <motion.div 
             whileHover={{ scale: 1.05 }}
@@ -30,17 +30,17 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">D</span>
             </div>
-            <span className="text-xl font-bold text-gray-900">DigitalTechSolution</span>
+            <span className="text-lg sm:text-xl font-bold text-gray-900">DigitalTechSolution</span>
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4 md:space-x-8">
             {navItems.map((item) => (
               <motion.a
                 key={item.name}
                 href={item.href}
                 whileHover={{ scale: 1.05 }}
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+                className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 text-base md:text-lg"
               >
                 {item.name}
               </motion.a>
@@ -48,10 +48,10 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-200"
+              className="text-gray-700 hover:text-blue-600 transition-colors duration-200 focus:outline-none"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -64,15 +64,15 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-gray-200"
+            className="md:hidden border-t border-gray-200 bg-white absolute top-16 left-0 w-full z-40 shadow-lg"
           >
-            <div className="py-4 space-y-4">
+            <div className="py-4 px-4 space-y-2">
               {navItems.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+                  className="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 text-base"
                 >
                   {item.name}
                 </a>
