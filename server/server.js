@@ -15,8 +15,7 @@ const corsOptions = {
       'http://localhost:5173',
       'http://localhost:3000',
       'https://digitaltechsolution.in',
-      'https://www.digitaltechsolution.in',
-      'https://api.digitaltechsolution.in'
+      'https://www.digitaltechsolution.in'
     ];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
