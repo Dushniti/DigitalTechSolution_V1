@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import config from '../config';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -141,7 +142,7 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await fetch('http://localhost:3000/api/project', {
+      const response = await fetch(`${config.apiUrl}/project`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -217,7 +218,7 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/schedule', {
+      const response = await fetch(`${config.apiUrl}/schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,7 +262,7 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await fetch('http://localhost:3000/api/contact', {
+      const response = await fetch(`${config.apiUrl}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
