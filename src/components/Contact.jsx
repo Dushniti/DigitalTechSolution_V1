@@ -142,7 +142,7 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await fetch(`${config.apiUrl}/project`, {
+      const response = await fetch(`${config.apiUrl}/api/project`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${config.apiUrl}/schedule`, {
+      const response = await fetch(`${config.apiUrl}/api/schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -268,7 +268,7 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await fetch(`${config.apiUrl}/contact`, {
+      const response = await fetch(`${config.apiUrl}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
