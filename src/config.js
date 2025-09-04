@@ -1,13 +1,15 @@
 // API Configuration
 const getApiUrl = () => {
-  if (window.location.hostname === 'digitaltechsolution.in' || 
-      window.location.hostname === 'www.digitaltechsolution.in') {
-    // Production URL - use the backend server directly
-    return 'https://api.digitaltechsolution.in';
+  const isProd = process.env.NODE_ENV === 'production';
+  const hostname = window.location.hostname;
+  
+  if (isProd) {
+    // Use the same domain as the frontend in production
+    return `${window.location.protocol}//${hostname}/api`;
   }
   
   // Development URL
-  return 'http://localhost:3000';
+  return 'http://localhost:3000/api';
 };
 
 const config = {
