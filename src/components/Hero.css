@@ -1,0 +1,33 @@
+/* Hero Slider Styles */
+.slick-slider, .slick-list, .slick-track {
+  height: 100%;
+}
+
+.slick-slide > div {
+  height: 100%;
+}
+
+.slick-slide {
+  visibility: hidden;
+}
+
+.slick-slide.slick-active {
+  visibility: visible;
+}
+
+/* Optional: Add progress bar for slide timing */
+.slick-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 30;
+}
+
+.slick-progress-fill {
+  height: 100%;
+  background: #fff;
+  transition: width 5s linear;
+}
