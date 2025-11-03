@@ -15,7 +15,9 @@ const corsOptions = {
       'http://localhost:5173',
       'http://localhost:3000',
       'https://digitaltechsolution.in',
-      'https://www.digitaltechsolution.in'
+      'https://www.digitaltechsolution.in',
+      'https://digitaltechsolution-v1.onrender.com',
+      'http://digitaltechsolution-v1.onrender.com'
     ];
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
@@ -24,11 +26,12 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   credentials: true,
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  maxAge: 86400 // Enable CORS pre-flight cache for 24 hours
 };
 
 // Apply CORS middleware
