@@ -10,29 +10,21 @@ const app = express();
 
 // CORS Configuration
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'https://digitaltechsolution.in',
-      'https://www.digitaltechsolution.in',
-      'https://digitaltechsolution-v1.onrender.com',
-      'http://digitaltechsolution-v1.onrender.com'
-    ];
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-  maxAge: 86400 // Enable CORS pre-flight cache for 24 hours
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  credentials: false, // Must be false when using '*' for origin
+  optionsSuccessStatus: 200,
 };
+
+// Debug middleware to log requests
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.path}`);
+  console.log('Origin:', req.headers.origin);
+  console.log('Headers:', req.headers);
+  next();
+});
 
 // Apply CORS middleware
 app.use(cors(corsOptions));

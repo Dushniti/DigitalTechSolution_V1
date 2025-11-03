@@ -284,7 +284,7 @@ const Contact = () => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        credentials: 'include',
+        mode: 'cors',
         body: JSON.stringify(formData)
       });
 
