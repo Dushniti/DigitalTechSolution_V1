@@ -61,22 +61,53 @@ async function verifyEmailConfig() {
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
-    const { name, email, message } = req.body;
+    const { name, email, phone, message } = req.body;
     
-    const mailOptions = {
+    // Email to admin
+    const adminMailOptions = {
       from: process.env.EMAIL_USER,
       to: 'dushyant.kumar1719@gmail.com',
-      subject: `New Contact Form Message from ${name}`,
+      subject: `New Message From ${name}`,
       html: `
-        <h3>New Contact Form Submission</h3>
+        <h3>Digital Tech Solution - New Contact Form Submission</h3>
         <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Email:</strong> ${email || 'Not provided'}</p>
         <p><strong>Message:</strong></p>
         <p>${message}</p>
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    await transporter.sendMail(adminMailOptions);
+
+    // Auto-response email to submitter (only if email is provided)
+    if (email) {
+      const autoResponseOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Thank You for Contacting Digital Tech Solution',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Thank You for Contacting Digital Tech Solution</h2>
+            <p>Dear ${name},</p>
+            <p>Thank you for reaching out to Digital Tech Solution. We have received your message and appreciate your interest in our services.</p>
+            <p>Our team will review your inquiry and get back to you as soon as possible.</p>
+            <p>For your reference, here's a copy of your message:</p>
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <p>${message}</p>
+            </div>
+            <p>If you need immediate assistance, feel free to call us.</p>
+            <div style="margin-top: 30px;">
+              <p style="margin: 0;">Best Regards,</p>
+              <p style="margin: 5px 0; color: #2563eb; font-weight: bold;">Digital Tech Solution Team</p>
+            </div>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(autoResponseOptions);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Message sent successfully!'

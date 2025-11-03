@@ -7,6 +7,7 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     message: ''
   });
   const [scheduleData, setScheduleData] = useState({
@@ -47,14 +48,23 @@ const Contact = () => {
       setStatus({ type: 'error', message: 'Name is required' });
       return false;
     }
-    if (!formData.email.trim()) {
-      setStatus({ type: 'error', message: 'Email is required' });
+    if (!formData.phone.trim()) {
+      setStatus({ type: 'error', message: 'Phone number is required' });
       return false;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setStatus({ type: 'error', message: 'Please enter a valid email address' });
+    // Phone number validation (accepts common formats with optional country code)
+    const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
+    if (!phoneRegex.test(formData.phone.trim())) {
+      setStatus({ type: 'error', message: 'Please enter a valid phone number' });
       return false;
+    }
+    // Email validation only if provided
+    if (formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setStatus({ type: 'error', message: 'Please enter a valid email address' });
+        return false;
+      }
     }
     if (!formData.message.trim()) {
       setStatus({ type: 'error', message: 'Message is required' });
@@ -282,7 +292,7 @@ const Contact = () => {
       
       if (data.success) {
         setStatus({ type: 'success', message: data.message });
-        setFormData({ name: '', email: '', message: '' });
+        setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
         setStatus({ type: 'error', message: data.message });
       }
@@ -374,8 +384,24 @@ const Contact = () => {
                 </div>
 
                 <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number*
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    placeholder="Your phone number"
+                  />
+                </div>
+
+                <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+                    Email (Optional)
                   </label>
                   <input
                     type="email"
@@ -383,7 +409,6 @@ const Contact = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     placeholder="your@email.com"
                   />
