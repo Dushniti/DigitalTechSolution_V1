@@ -1,11 +1,10 @@
 // API Configuration
 const getApiUrl = () => {
   const isProd = process.env.NODE_ENV === 'production';
-  const hostname = window.location.hostname;
   
   if (isProd) {
-    // Use the same domain as the frontend in production
-    return `${window.location.protocol}//${hostname}/api`;
+    // Production API URL
+    return 'https://digitaltechsolution-v1.onrender.com/api';
   }
   
   // Development URL

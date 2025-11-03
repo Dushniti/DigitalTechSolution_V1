@@ -10,6 +10,9 @@ A modern, responsive company portfolio website built with React, Vite, and Tailw
 - 🎭 **Smooth Animations**: Framer Motion animations for enhanced user experience
 - 🎯 **SEO Optimized**: Proper meta tags and semantic HTML structure
 - 🔧 **Modular Components**: Reusable React components for easy maintenance
+- 📧 **Contact Forms**: Multiple contact forms with SMTP email integration
+- 🔄 **Auto-Response**: Automatic thank you emails to form submitters
+- 📞 **Phone Integration**: Mandatory phone number collection for better lead tracking
 
 ## Sections
 
@@ -40,21 +43,45 @@ A modern, responsive company portfolio website built with React, Vite, and Tailw
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd company-portfolio
+git clone https://github.com/Dushniti/DigitalTechSolution_V1.git
+cd digitaltechsolution
 ```
 
-2. Install dependencies:
+2. Install dependencies for both frontend and backend:
 ```bash
+# Install frontend dependencies
 npm install
+
+# Install backend dependencies
+cd server
+npm install
+cd ..
 ```
 
-3. Start the development server:
+3. Set up environment variables:
+   - Create a `.env` file in the server directory
+   - Add the following variables:
+   ```env
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-app-specific-password
+   PORT=3000
+   ```
+   Note: For Gmail, you need to use an App Password. Enable 2-factor authentication and generate an App Password from your Google Account settings.
+
+4. Start both servers:
 ```bash
+# Start the backend server (in server directory)
+cd server
+npm start
+
+# Start the frontend development server (in another terminal)
+cd ..
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open your browser and navigate to:
+   - Frontend: `http://localhost:5173`
+   - Backend API: `http://localhost:3000`
 
 ### Building for Production
 
@@ -77,8 +104,10 @@ npm run preview
 ## Project Structure
 
 ```
-company-portfolio/
+digitaltechsolution/
 ├── public/
+│   ├── favicon.svg
+│   └── vite.svg
 ├── src/
 │   ├── components/
 │   │   ├── Navbar.jsx
@@ -87,13 +116,22 @@ company-portfolio/
 │   │   ├── Services.jsx
 │   │   ├── Portfolio.jsx
 │   │   ├── Contact.jsx
+│   │   ├── ServiceModal.jsx
 │   │   └── Footer.jsx
+│   ├── assets/
+│   │   └── react.svg
 │   ├── App.jsx
 │   ├── main.jsx
+│   ├── config.js
 │   └── index.css
+├── server/
+│   ├── server.js
+│   ├── package.json
+│   └── .env
 ├── index.html
 ├── tailwind.config.js
 ├── postcss.config.js
+├── vite.config.js
 ├── package.json
 └── README.md
 ```
@@ -129,13 +167,16 @@ The website uses Tailwind CSS utility classes. You can modify the styling by:
 
 ## Features to Add
 
-- [ ] Contact form backend integration
+- [x] Contact form backend integration
 - [ ] Blog section
 - [ ] Testimonials section
 - [ ] Dark mode toggle
 - [ ] Multi-language support
 - [ ] Analytics integration
-- [ ] Performance optimizations
+- [x] Performance optimizations
+- [x] Email notifications system
+- [x] Multiple contact forms (General, Project, Schedule Call)
+- [x] Form validation and error handling
 
 ## Contributing
 
