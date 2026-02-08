@@ -141,6 +141,33 @@ const ServiceModal = ({ isOpen, onClose, service }) => {
                 >
                   Close
                 </motion.button>
+
+                {/* WhatsApp button: sends dynamic message with selected service details */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    try {
+                      const phoneNumber = '7983614392'; // WhatsApp contact (country code prefixed below)
+                      const countryCode = '91';
+                      const title = service.title || '';
+                      const description = service.description || '';
+                      const features = (service.features || []).join(', ');
+                      const technologies = (service.technologies || []).join(', ');
+
+                      const encoded = encodeURIComponent(`Hello! I'm interested in the ${title} service.\n\nOverview: ${description}\n\nFeatures: ${features}\n\nTechnologies: ${technologies}\n\nPlease get back to me with more details and pricing.`);
+
+                      const whatsappUrl = `https://wa.me/${countryCode}${phoneNumber}?text=${encoded}`;
+                      window.open(whatsappUrl, '_blank');
+                    } catch (err) {
+                      console.error('WhatsApp link error', err);
+                    }
+                  }}
+                  className="flex-1 bg-green-500 text-white font-medium py-3 px-4 rounded-lg hover:bg-green-600 transition-all duration-200"
+                >
+                  Message on WhatsApp
+                </motion.button>
+
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
