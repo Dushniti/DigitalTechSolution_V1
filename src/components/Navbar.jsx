@@ -18,7 +18,7 @@ const Navbar = () => {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm"
+      className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-50/95 via-white/95 to-indigo-50/95 backdrop-blur-sm border-b border-blue-100 shadow-sm"
     >
       <div className="container-custom px-4 sm:px-6 lg:px-8 mx-auto">
         <div className="flex flex-wrap items-center justify-between h-16">
@@ -32,7 +32,9 @@ const Navbar = () => {
               alt="DigitalTechSolution logo"
               className="w-16 h-18 rounded-lg object-cover"
             />
-            <span className="text-lg sm:text-xl font-bold text-gray-900">DigitalTechSolution</span>
+            <span className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">
+              DigitalTechSolution
+            </span>
           </motion.div>
 
           {/* Desktop Navigation */}
