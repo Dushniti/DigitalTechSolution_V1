@@ -27,9 +27,11 @@ const Navbar = () => {
             whileHover={{ scale: 1.05 }}
             className="flex items-center space-x-2"
           >
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">D</span>
-            </div>
+            <img
+              src="https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw"
+              alt="DigitalTechSolution logo"
+              className="w-16 h-18 rounded-lg object-cover"
+            />
             <span className="text-lg sm:text-xl font-bold text-gray-900">DigitalTechSolution</span>
           </motion.div>
 

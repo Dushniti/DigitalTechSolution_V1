@@ -40,9 +40,11 @@ const Footer = () => {
               viewport={{ once: true }}
             >
               <div className="flex items-center space-x-2 mb-6">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">D</span>
-                </div>
+                <img
+                  src="https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw"
+                  alt="DigitalTechSolution logo"
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
                 <span className="text-xl font-bold">DigitalTechSolution</span>
               </div>
               <p className="text-gray-400 mb-6 leading-relaxed">
