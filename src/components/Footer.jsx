@@ -5,7 +5,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { icon: <Facebook size={20} />, href: '#', label: 'Facebook' },
+    { icon: <Facebook size={20} />, href: 'https://www.facebook.com/profile.php?id=100071101447374', label: 'Facebook', target: '_blank' },
     { icon: <Instagram size={20} />, href: '#', label: 'Instagram' },
   ];
 
@@ -56,6 +56,8 @@ const Footer = () => {
                   <motion.a
                     key={index}
                     href={social.href}
+                    target={social.target}
+                    rel={social.target === '_blank' ? 'noopener noreferrer' : undefined}
                     whileHover={{ scale: 1.1, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-all duration-300"
