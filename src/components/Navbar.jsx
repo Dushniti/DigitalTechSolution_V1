@@ -4,6 +4,21 @@ import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const logoSrc = 'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
+
+  const handleLogoClick = (event) => {
+    event.preventDefault();
+    setIsOpen(false);
+
+    if (window.location.pathname !== '/' || window.location.hash) {
+      window.history.pushState({}, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const navItems = [
     { name: 'Home', href: '#home' },
@@ -23,19 +38,26 @@ const Navbar = () => {
       <div className="container-custom px-4 sm:px-6 lg:px-8 mx-auto">
         <div className="flex flex-wrap items-center justify-between h-16">
           {/* Logo */}
-          <motion.div 
+          <motion.a
+            href="/"
+            onClick={handleLogoClick}
             whileHover={{ scale: 1.05 }}
             className="flex items-center space-x-2"
           >
             <img
-              src="https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw"
+              src={logoSrc}
               alt="DigitalTechSolution logo"
               className="w-16 h-18 rounded-lg object-cover"
+              referrerPolicy="no-referrer"
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = '/vite.svg';
+              }}
             />
             <span className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">
               DigitalTechSolution
             </span>
-          </motion.div>
+          </motion.a>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4 md:space-x-8">

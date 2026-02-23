@@ -3,10 +3,11 @@ import { Facebook, Instagram, Mail } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const logoSrc = 'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
 
   const socialLinks = [
     { icon: <Facebook size={20} />, href: 'https://www.facebook.com/profile.php?id=100071101447374', label: 'Facebook', target: '_blank' },
-    { icon: <Instagram size={20} />, href: '#', label: 'Instagram' },
+    { icon: <Instagram size={20} />, href: 'https://www.instagram.com/dts838485?igsh=MXkwN21oMXFybjgycg==', label: 'Instagram', target: '_blank' },
   ];
 
   const quickLinks = [
@@ -15,6 +16,7 @@ const Footer = () => {
     { name: 'Services', href: '#services' },
     { name: 'Portfolio', href: '#portfolio' },
     { name: 'Contact', href: '#contact' },
+    { name: 'Career', href: '#/career' },
   ];
 
   const services = [
@@ -25,6 +27,36 @@ const Footer = () => {
     'Digital Marketing',
     'UI/UX Design',
   ];
+
+  const navigateToPath = (path) => (event) => {
+    event.preventDefault();
+
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new Event('routechange'));
+    }
+  };
+
+  const navigateToSection = (sectionId) => (event) => {
+    event.preventDefault();
+
+    const scrollToSection = () => {
+      const targetElement = document.getElementById(sectionId);
+
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    if (window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/');
+      window.dispatchEvent(new Event('routechange'));
+      setTimeout(scrollToSection, 0);
+      return;
+    }
+
+    scrollToSection();
+  };
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -41,11 +73,18 @@ const Footer = () => {
             >
               <div className="flex items-center space-x-2 mb-6">
                 <img
-                  src="https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw"
+                  src={logoSrc}
                   alt="DigitalTechSolution logo"
-                  className="w-12 h-12 rounded-lg object-cover"
+                  className="w-12 h-12 rounded-lg object-cover bg-white"
+                  referrerPolicy="no-referrer"
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = '/vite.svg';
+                  }}
                 />
-                <span className="text-xl font-bold">DigitalTechSolution</span>
+                <span className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">
+                  DigitalTechSolution
+                </span>
               </div>
               <p className="text-gray-400 mb-6 leading-relaxed">
                 We create exceptional digital experiences that help businesses 
@@ -206,10 +245,10 @@ const Footer = () => {
               © {currentYear} DigitalTechSolution. All rights reserved.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-sm text-center md:text-right">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">
+              <a href="#/privacy-policy" className="text-gray-400 hover:text-white transition-colors duration-200">
                 Privacy Policy
               </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">
+              <a href="#/terms-of-service" className="text-gray-400 hover:text-white transition-colors duration-200">
                 Terms of Service
               </a>
               <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">
