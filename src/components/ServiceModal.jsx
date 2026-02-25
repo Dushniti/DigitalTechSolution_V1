@@ -1,7 +1,20 @@
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, Clock, Users, Zap } from 'lucide-react';
 
 const ServiceModal = ({ isOpen, onClose, service }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!service) return null;
 
   const features = [
@@ -11,14 +24,14 @@ const ServiceModal = ({ isOpen, onClose, service }) => {
     { icon: <Zap className="w-5 h-5 text-yellow-500" />, text: 'Modern Technologies' },
   ];
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
         >
           {/* Backdrop */}
           <motion.div
@@ -180,7 +193,8 @@ const ServiceModal = ({ isOpen, onClose, service }) => {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 
