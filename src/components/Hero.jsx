@@ -1,3 +1,4 @@
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Phone, CheckCircle, Star } from 'lucide-react';
 
@@ -43,9 +44,22 @@ const fadeUp = {
 };
 
 const Hero = () => {
+  const [cursor, setCursor] = useState({ x: -999, y: -999 });
+
+  const handleMouseMove = useCallback((e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setCursor({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setCursor({ x: -999, y: -999 });
+  }, []);
+
   return (
     <section
       id="home"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-950 via-blue-950 to-gray-900"
     >
       {/* ── Layered gradient overlays ── */}
@@ -70,6 +84,23 @@ const Hero = () => {
 
       {/* ── Top border glow ── */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/60 to-transparent pointer-events-none" />
+
+      {/* ── Glowing cursor follower ── */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute rounded-full"
+        style={{
+          width: 380,
+          height: 380,
+          left: cursor.x,
+          top: cursor.y,
+          transform: 'translate(-50%, -50%)',
+          background: 'radial-gradient(circle, rgba(99,179,237,0.18) 0%, rgba(59,130,246,0.10) 40%, transparent 70%)',
+          filter: 'blur(32px)',
+          transition: 'left 0.08s ease-out, top 0.08s ease-out',
+          zIndex: 1,
+        }}
+      />
 
       {/* ── Floating particles ── */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
