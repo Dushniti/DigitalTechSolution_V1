@@ -59,7 +59,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-gray-900 text-white" data-aos="fade-up" data-aos-duration="800">
       <div className="container-custom px-4 sm:px-6 lg:px-8 mx-auto">
         {/* Main Footer Content */}
         <div className="py-12 sm:py-16">

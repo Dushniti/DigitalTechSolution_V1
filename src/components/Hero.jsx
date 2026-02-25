@@ -1,158 +1,268 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import Slider from 'react-slick';
-import { useState } from 'react';
-import './Hero.css';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
+import { ArrowRight, Phone, CheckCircle, Star } from 'lucide-react';
+
+const phoneNumber = '7983614392';
+
+const stats = [
+  { value: '100+', label: 'Projects Completed' },
+  { value: '50+', label: 'Happy Clients' },
+  { value: '5+', label: 'Years Experience' },
+];
+
+const benefits = [
+  'Custom Web & App Development',
+  'SEO & Digital Marketing',
+  'Dedicated Support Team',
+];
+
+// Pre-computed particle data – deterministic so no re-render cost
+const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
+  id: i,
+  size: 2 + (i % 3),                        // 2 | 3 | 4 px
+  left: `${(i * 37 + 11) % 100}%`,
+  top:  `${(i * 53 +  7) % 100}%`,
+  duration: `${7 + (i % 6) * 1.8}s`,        // 7 – 16 s
+  delay:    `${-((i * 1.3) % 8)}s`,          // stagger with negative delay (starts mid-animation)
+  opacity:  0.12 + (i % 5) * 0.04,           // 0.12 – 0.28
+}));
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.15 },
+  },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.75, ease: 'easeOut' },
+  },
+};
 
 const Hero = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const sliderSettings = {
-    dots: false,
-    infinite: true,
-    speed: 1000,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 5000,
-    fade: true,
-    cssEase: 'linear',
-    arrows: false,
-    beforeChange: (current, next) => setCurrentSlide(next),
-  };
-
-  const heroContent = [
-    {
-      title: <>We Build<span className="text-blue-300 block">Digital Experiences</span>That Matter</>,
-      description: "Transform your business with cutting-edge web solutions. We specialize in creating stunning, high-performance websites and applications that drive results."
-    },
-    {
-      title: <>Drive Growth With<span className="text-blue-300 block">Digital Marketing</span>That Delivers</>,
-      description: "Boost your online presence with data-driven digital marketing strategies. We help you reach and engage your target audience effectively."
-    },
-    {
-      title: <>Innovative<span className="text-blue-300 block">Mobile Apps</span>For Your Business</>,
-      description: "Transform your ideas into powerful mobile applications. We develop custom solutions that engage users and drive business growth."
-    }
-  ];
-
-  const bannerImages = [
-    {
-      url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1920&h=1080&fit=crop",
-      alt: "Web Development Banner"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1432888622747-4eb9a8efeb07?w=1920&h=1080&fit=crop",
-      alt: "Digital Marketing Banner"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1920&h=1080&fit=crop",
-      alt: "App Development Banner"
-    }
-  ];
   return (
-    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Background Image Slider */}
-      <div className="absolute inset-0 z-0">
-        <Slider {...sliderSettings} className="h-full">
-          {bannerImages.map((image, index) => (
-            <div key={index} className="h-screen">
-              <img
-                src={image.url}
-                alt={image.alt}
-                className="w-full h-full object-cover"
-              />
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-blue-600/60"></div>
-            </div>
-          ))}
-        </Slider>
+    <section
+      id="home"
+      className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-950 via-blue-950 to-gray-900"
+    >
+      {/* ── Layered gradient overlays ── */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        {/* Radial centre spotlight */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(59,130,246,0.18) 0%, transparent 70%)' }} />
+        {/* Bottom-left teal glow */}
+        <div className="absolute bottom-0 left-0 w-[36rem] h-[36rem] bg-cyan-600 rounded-full opacity-[0.07] blur-3xl" />
+        {/* Top-right indigo glow */}
+        <div className="absolute -top-32 right-0 w-[32rem] h-[32rem] bg-indigo-600 rounded-full opacity-[0.10] blur-3xl" />
       </div>
 
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden z-10">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full opacity-10 blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full opacity-10 blur-3xl"></div>
+      {/* ── Dot-grid texture ── */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.045]"
+        aria-hidden="true"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(255,255,255,0.55) 1px, transparent 1px)',
+          backgroundSize: '36px 36px',
+        }}
+      />
+
+      {/* ── Top border glow ── */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-500/60 to-transparent pointer-events-none" />
+
+      {/* ── Floating particles ── */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        {PARTICLES.map((p) => (
+          <span
+            key={p.id}
+            className="absolute rounded-full bg-blue-400"
+            style={{
+              width:  p.size,
+              height: p.size,
+              left:   p.left,
+              top:    p.top,
+              '--p-opacity': p.opacity,
+              opacity: p.opacity,
+              animation: `particleFloat ${p.duration} ${p.delay} ease-in-out infinite`,
+              willChange: 'transform, opacity',
+            }}
+          />
+        ))}
       </div>
 
-      <div className="container-custom relative z-20">
-        <div className="text-center max-w-4xl mx-auto">
+      {/* ── Main content ── */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-28 text-center">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col items-center"
+        >
+          {/* Trust badge */}
+          <motion.div variants={fadeUp} className="mb-7">
+            <span className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/25 text-blue-300 text-sm font-medium px-4 py-1.5 rounded-full tracking-wide">
+              <Star size={13} className="fill-blue-400 text-blue-400" />
+              Trusted by 50+ Businesses Across India
+            </span>
+          </motion.div>
+
+          {/* Headline */}
           <motion.h1
-            key={`title-${currentSlide}`}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
+            variants={fadeUp}
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-extrabold text-white leading-[1.12] tracking-tight mb-6 max-w-4xl"
           >
-            {heroContent[currentSlide].title}
+            We Build{' '}
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-300 bg-clip-text text-transparent">
+              Websites, Apps &amp; Software
+            </span>{' '}
+            That Grow Your Business
           </motion.h1>
 
+          {/* Subheading */}
           <motion.p
-            key={`desc-${currentSlide}`}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl md:text-2xl text-blue-100 mb-8 max-w-2xl mx-auto leading-relaxed"
+            variants={fadeUp}
+            className="text-lg md:text-xl text-gray-300/90 max-w-2xl mb-8 leading-relaxed"
           >
-            {heroContent[currentSlide].description}
+            From idea to launch — we deliver fast, scalable, and ROI‑focused digital solutions
+            that attract more customers, boost conversions, and give your business a lasting
+            competitive edge.
           </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          {/* Benefit pills */}
+          <motion.ul
+            variants={fadeUp}
+            className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-10"
           >
+            {benefits.map((b) => (
+              <li key={b} className="flex items-center gap-1.5 text-sm text-gray-300">
+                <CheckCircle size={15} className="text-cyan-400 shrink-0" />
+                {b}
+              </li>
+            ))}
+          </motion.ul>
+
+          {/* CTA Buttons */}
+          <motion.div
+            variants={fadeUp}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20"
+          >
+            {/* Primary CTA */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-primary flex items-center space-x-2"
-              onClick={() => {
-                document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
-              }}
+              whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(59,130,246,0.4)' }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() =>
+                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+              }
+              className="inline-flex items-center gap-2.5 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition-all duration-300 text-[0.95rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
             >
-              <span>Get Started</span>
-              <ArrowRight size={20} />
+              Get Free Consultation
+              <ArrowRight size={18} />
             </motion.button>
-            
-            <motion.button
+
+            {/* Secondary CTA */}
+            <motion.a
+              href={`tel:+91${phoneNumber}`}
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-secondary"
-              onClick={() => {
-                document.getElementById('portfolio').scrollIntoView({ behavior: 'smooth' });
-              }}
+              whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center gap-2.5 px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 text-white font-semibold rounded-xl backdrop-blur-sm transition-all duration-300 text-[0.95rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             >
-              View Our Work
-            </motion.button>
+              <Phone size={17} className="text-cyan-400" />
+              Call Now
+            </motion.a>
           </motion.div>
 
-          {/* Stats */}
+          {/* Stats row */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto"
+            variants={fadeUp}
+            className="grid grid-cols-3 gap-6 sm:gap-14 max-w-md mx-auto w-full"
           >
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-300 mb-2">100+</div>
-              <div className="text-blue-100">Projects Completed</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-300 mb-2">50+</div>
-              <div className="text-blue-100">Happy Clients</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-300 mb-2">5+</div>
-              <div className="text-blue-100">Years Experience</div>
-            </div>
+            {stats.map(({ value, label }) => (
+              <div key={label} className="text-center">
+                <div className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-1">
+                  {value}
+                </div>
+                <div className="text-xs sm:text-sm text-gray-400 leading-snug">{label}</div>
+              </div>
+            ))}
           </motion.div>
+        </motion.div>
+      </div>
+
+      {/* ── Animated wave SVG ── */}
+      <div
+        className="absolute bottom-0 left-0 right-0 pointer-events-none overflow-hidden leading-[0]"
+        aria-hidden="true"
+        style={{ height: 110 }}
+      >
+        {/* Back wave – slower, more transparent */}
+        <div
+          className="absolute bottom-0 left-0 h-full"
+          style={{
+            width: '200%',
+            animation: 'waveShift 18s linear infinite',
+            willChange: 'transform',
+          }}
+        >
+          <svg
+            viewBox="0 0 1440 110"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            className="w-1/2 h-full inline-block"
+          >
+            <path
+              d="M0,55 C180,100 360,10 540,55 C720,100 900,10 1080,55 C1260,100 1350,30 1440,55 L1440,110 L0,110 Z"
+              fill="rgba(255,255,255,0.06)"
+            />
+          </svg>
+          <svg
+            viewBox="0 0 1440 110"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            className="w-1/2 h-full inline-block"
+          >
+            <path
+              d="M0,55 C180,100 360,10 540,55 C720,100 900,10 1080,55 C1260,100 1350,30 1440,55 L1440,110 L0,110 Z"
+              fill="rgba(255,255,255,0.06)"
+            />
+          </svg>
+        </div>
+
+        {/* Front wave – faster, matches next section bg */}
+        <div
+          className="absolute bottom-0 left-0 h-full"
+          style={{
+            width: '200%',
+            animation: 'waveShift 11s linear infinite reverse',
+            willChange: 'transform',
+          }}
+        >
+          <svg
+            viewBox="0 0 1440 110"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            className="w-1/2 h-full inline-block"
+          >
+            <path
+              d="M0,70 C200,20 400,100 600,60 C800,20 1000,90 1200,50 C1300,30 1380,80 1440,70 L1440,110 L0,110 Z"
+              fill="#ffffff"
+            />
+          </svg>
+          <svg
+            viewBox="0 0 1440 110"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            className="w-1/2 h-full inline-block"
+          >
+            <path
+              d="M0,70 C200,20 400,100 600,60 C800,20 1000,90 1200,50 C1300,30 1380,80 1440,70 L1440,110 L0,110 Z"
+              fill="#ffffff"
+            />
+          </svg>
         </div>
       </div>
     </section>
   );
 };
 
-export default Hero; 
+export default Hero;

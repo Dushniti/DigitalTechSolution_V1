@@ -328,7 +328,7 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="section-padding bg-gray-50">
+    <section id="contact" className="section-padding bg-gray-50" data-aos="fade-up" data-aos-duration="800">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

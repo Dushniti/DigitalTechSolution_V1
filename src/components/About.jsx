@@ -26,7 +26,7 @@ const About = () => {
   ];
 
   return (
-    <section id="about" className="section-padding bg-white">
+    <section id="about" className="section-padding bg-white" data-aos="fade-up" data-aos-duration="800">
       <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import AOS from 'aos';
+import useSEO from './hooks/useSEO';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -41,11 +43,50 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentRoute]);
 
-  const isPrivacyPage = currentRoute === 'privacy-policy';
-  const isTermsPage = currentRoute === 'terms-of-service';
-  const isCareerPage = currentRoute === 'career';
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      easing: 'ease-out-cubic',
+      once: true,
+      offset: 80,
+    });
+  }, []);
 
-  const isStandalonePage = isPrivacyPage || isTermsPage || isCareerPage;
+  useEffect(() => {
+    AOS.refresh();
+  }, [currentRoute]);
+
+  const isPrivacyPage     = currentRoute === 'privacy-policy';
+  const isTermsPage       = currentRoute === 'terms-of-service';
+  const isCareerPage      = currentRoute === 'career';
+  const isStandalonePage  = isPrivacyPage || isTermsPage || isCareerPage;
+
+  // ── Per-route SEO ──────────────────────────────────────────────────────
+  const seoMap = {
+    'privacy-policy': {
+      title:       'Privacy Policy',
+      description: 'Read the DigitalTechSolution privacy policy to understand how we collect, use and protect your personal data.',
+      path:        '/privacy-policy',
+    },
+    'terms-of-service': {
+      title:       'Terms of Service',
+      description: 'Review the terms and conditions governing the use of DigitalTechSolution services and our website.',
+      path:        '/terms-of-service',
+    },
+    career: {
+      title:       'Careers',
+      description: 'Join the DigitalTechSolution team. Explore open roles in web development, app development, and digital marketing.',
+      path:        '/career',
+    },
+    default: {
+      title:       'Professional Web, App & Software Development',
+      description: 'DigitalTechSolution builds fast, SEO-ready websites, mobile apps, and custom software that grow your business. Get a free consultation today.',
+      path:        '/',
+    },
+  };
+
+  const currentSEO = seoMap[currentRoute] ?? seoMap.default;
+  useSEO(currentSEO);
 
   const renderPageContent = () => {
     if (isPrivacyPage) {
