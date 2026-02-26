@@ -13,6 +13,7 @@ import CallFloat from './components/CallFloat';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import Career from './components/Career';
+import OurTeam from './components/OurTeam';
 
 const getCurrentRoute = () => {
   const hashRoute = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
@@ -59,7 +60,8 @@ function App() {
   const isPrivacyPage     = currentRoute === 'privacy-policy';
   const isTermsPage       = currentRoute === 'terms-of-service';
   const isCareerPage      = currentRoute === 'career';
-  const isStandalonePage  = isPrivacyPage || isTermsPage || isCareerPage;
+  const isOurTeamPage     = currentRoute === 'our-team';
+  const isStandalonePage  = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage;
 
   // ── Per-route SEO ──────────────────────────────────────────────────────
   const seoMap = {
@@ -77,6 +79,11 @@ function App() {
       title:       'Careers',
       description: 'Join the DigitalTechSolution team. Explore open roles in web development, app development, and digital marketing.',
       path:        '/career',
+    },
+    'our-team': {
+      title:       'Our Team',
+      description: 'Meet the passionate designers, developers, and strategists behind DigitalTechSolution.',
+      path:        '/our-team',
     },
     default: {
       title:       'Professional Web, App & Software Development',
@@ -99,6 +106,10 @@ function App() {
 
     if (isCareerPage) {
       return <Career />;
+    }
+
+    if (isOurTeamPage) {
+      return <OurTeam />;
     }
 
     return (
