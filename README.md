@@ -1,42 +1,79 @@
-# DigitalTechSolution - Company Portfolio Website
+# DigitalTechSolution — Company Portfolio Website
 
-A modern, responsive company portfolio website built with React, Vite, and Tailwind CSS. This website showcases web development services with a clean, professional design and smooth animations.
+A modern, fully responsive company portfolio website built with React 18, Vite, and Tailwind CSS. It showcases web development services with a dark/light design system, gradient aesthetics, Framer Motion animations, and a full Node.js/Express backend for contact form submissions.
+
+---
 
 ## Features
 
-- 🎨 **Modern Design**: Clean, professional layout with modern UI/UX principles
-- 📱 **Fully Responsive**: Optimized for all devices and screen sizes
-- ⚡ **Fast Performance**: Built with Vite for lightning-fast development and build times
-- 🎭 **Smooth Animations**: Framer Motion animations for enhanced user experience
-- 🎯 **SEO Optimized**: Proper meta tags and semantic HTML structure
-- 🔧 **Modular Components**: Reusable React components for easy maintenance
-- 📧 **Contact Forms**: Multiple contact forms with SMTP email integration
-- 🔄 **Auto-Response**: Automatic thank you emails to form submitters
-- 📞 **Phone Integration**: Mandatory phone number collection for better lead tracking
+- 🎨 **Modern Design** — Gradient backgrounds, pill badges, frosted glass effects, and consistent dark CTA banners across all sections
+- 📱 **Fully Responsive** — Mobile-first layout optimised for all screen sizes including mobile footer and popup fixes
+- ⚡ **Vite Powered** — Lightning-fast HMR development server and optimised production builds
+- 🎭 **Framer Motion Animations** — `whileInView`, `whileHover`, `AnimatePresence`, and layout animations throughout
+- 🎯 **SEO Optimised** — Dynamic meta tags via custom `useSEO` hook, `sitemap.xml`, and `robots.txt`
+- 🔧 **Modular Components** — Fully self-contained, reusable React components
+- 📧 **Three Contact Forms** — General enquiry, Start a Project, and Schedule a Call — all with SMTP email integration and auto-reply
+- ✅ **Form Validation** — Client-side validation with clear error messaging
+- 🌊 **Animated Tech Background** — Canvas-based particle background (TechBackground)
+- 💬 **Floating Buttons** — WhatsApp and Call floating action buttons
+- 🛡️ **Legal Pages** — Privacy Policy and Terms of Service
+- 👥 **Team Page** — Dedicated `/our-team` route with animated member cards
+- 💼 **Careers Page** — Dedicated `/career` route
+- 🔢 **Portal Modals** — Contact modals rendered via `createPortal` to correctly layer above all content
+
+---
 
 ## Sections
 
-1. **Navbar/Header** - Company logo and navigation menu
-2. **Hero Section** - Eye-catching banner with call-to-action
-3. **About Us** - Company description, mission, and values
-4. **Services** - Showcase of offered services
-5. **Portfolio** - Project showcase with filtering
-6. **Contact** - Contact form and company information
-7. **Footer** - Social links, quick links, and newsletter signup
+| Route / Anchor | Component | Description |
+|---|---|---|
+| `#hero` | `Hero.jsx` | Animated hero with ROI-focused headline and CTA buttons |
+| `#about` | `About.jsx` | Mission, stats (50+ clients, 100% satisfaction), and values |
+| `#services` | `Services.jsx` | Service cards with feature chips, Learn More modal |
+| — | `ServiceModal.jsx` | Full-screen service details modal (portal-based) |
+| `#portfolio` | `Portfolio.jsx` | Filterable project grid with hover overlays |
+| `#contact` | `Contact.jsx` | Contact form + info cards + business hours + project/schedule modals |
+| `/our-team` | `OurTeam.jsx` | Team member cards with avatar, bio, and social links |
+| `/career` | `Career.jsx` | Open positions and application info |
+| `#/privacy-policy` | `PrivacyPolicy.jsx` | Privacy Policy page |
+| `#/terms-of-service` | `TermsOfService.jsx` | Terms of Service page |
+| — | `Footer.jsx` | Links, contact info, newsletter signup, bottom bar |
+
+---
 
 ## Technologies Used
 
-- **React 18** - Modern React with hooks
-- **Vite** - Fast build tool and development server
-- **Tailwind CSS** - Utility-first CSS framework
-- **Framer Motion** - Animation library for React
-- **Lucide React** - Beautiful icon library
+### Frontend
+- **React 18** — Hooks-based component architecture
+- **Vite** — Build tool and dev server
+- **Tailwind CSS** — Utility-first styling
+- **Framer Motion** — Animations and transitions
+- **Lucide React** — Icon library (uses `React.forwardRef` — assign to capitalized variable before use as JSX)
+- **AOS** — Scroll-triggered animation library
+- **react-dom `createPortal`** — Modal rendering outside component stacking contexts
+
+### Backend (`/server`)
+- **Node.js + Express** — REST API server
+- **Nodemailer** — SMTP email sending (Gmail App Password)
+- **CORS** — Configured for local and production origins
+
+---
+
+## Team
+
+| Name | Role |
+|---|---|
+| Dushyant Kumar | Founder & Full-Stack Developer |
+| Nitika Jolly | Frontend Developer |
+| Ishu Mathur | Backend Developer |
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 16 or higher)
+- Node.js v16 or higher
 - npm or yarn
 
 ### Installation
@@ -49,153 +86,156 @@ cd digitaltechsolution
 
 2. Install dependencies for both frontend and backend:
 ```bash
-# Install frontend dependencies
+# Frontend
 npm install
 
-# Install backend dependencies
+# Backend
 cd server
 npm install
 cd ..
 ```
 
-3. Set up environment variables:
-   - Create a `.env` file in the server directory
-   - Add the following variables:
-   ```env
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-specific-password
-   PORT=3000
-   ```
-   Note: For Gmail, you need to use an App Password. Enable 2-factor authentication and generate an App Password from your Google Account settings.
+3. Configure environment variables — create a `.env` file inside the `server/` directory:
+```env
+EMAIL_USER=your-gmail@gmail.com
+EMAIL_PASS=your-app-specific-password
+PORT=5000
+```
+> For Gmail, enable 2-Factor Authentication and generate an App Password from Google Account → Security → App passwords.
 
 4. Start both servers:
 ```bash
-# Start the backend server (in server directory)
+# Terminal 1 — backend
 cd server
 npm start
 
-# Start the frontend development server (in another terminal)
-cd ..
+# Terminal 2 — frontend
 npm run dev
 ```
 
-5. Open your browser and navigate to:
+5. Open in browser:
    - Frontend: `http://localhost:5173`
-   - Backend API: `http://localhost:3000`
+   - Backend API: `http://localhost:5000`
 
-### Building for Production
-
-To create a production build:
+### Production Build
 
 ```bash
-npm run build
+npm run build       # outputs to /dist
+npm run preview     # preview the production build locally
 ```
 
-The built files will be in the `dist` directory.
-
-### Preview Production Build
-
-To preview the production build locally:
-
-```bash
-npm run preview
-```
+---
 
 ## Project Structure
 
 ```
 digitaltechsolution/
 ├── public/
-│   ├── favicon.svg
-│   └── vite.svg
+│   ├── robots.txt
+│   └── sitemap.xml
 ├── src/
 │   ├── components/
 │   │   ├── Navbar.jsx
 │   │   ├── Hero.jsx
+│   │   ├── Hero.css
 │   │   ├── About.jsx
 │   │   ├── Services.jsx
+│   │   ├── ServiceModal.jsx
 │   │   ├── Portfolio.jsx
 │   │   ├── Contact.jsx
-│   │   ├── ServiceModal.jsx
-│   │   └── Footer.jsx
+│   │   ├── Footer.jsx
+│   │   ├── OurTeam.jsx
+│   │   ├── Career.jsx
+│   │   ├── PrivacyPolicy.jsx
+│   │   ├── TermsOfService.jsx
+│   │   ├── TechBackground.jsx
+│   │   ├── WhatsAppFloat.jsx
+│   │   └── CallFloat.jsx
+│   ├── hooks/
+│   │   └── useSEO.js
 │   ├── assets/
-│   │   └── react.svg
 │   ├── App.jsx
-│   ├── main.jsx
 │   ├── config.js
+│   ├── main.jsx
 │   └── index.css
 ├── server/
 │   ├── server.js
 │   ├── package.json
-│   └── .env
+│   └── .env          ← not committed
 ├── index.html
 ├── tailwind.config.js
 ├── postcss.config.js
 ├── vite.config.js
+├── eslint.config.js
 ├── package.json
 └── README.md
 ```
 
+---
+
 ## Customization
 
-### Colors
-The primary color scheme can be customized in `tailwind.config.js`:
+### Contact Information
+Update in the following files:
+- **`src/components/Contact.jsx`** — `contactInfo` array, business hours, modal forms
+- **`src/components/Footer.jsx`** — email, phone, address, social links
+- **`src/components/WhatsAppFloat.jsx`** / **`CallFloat.jsx`** — phone numbers
 
-```javascript
-colors: {
-  primary: {
-    50: '#eff6ff',
-    100: '#dbeafe',
-    // ... other shades
-  }
-}
-```
+### Services & Portfolio
+- Edit the `services` array at the top of `Services.jsx` (outside the component)
+- Edit the `projects` array at the top of `Portfolio.jsx` (outside the component)
 
-### Content
-Update the content in each component file to match your company's information:
-- Company name and logo
-- Services offered
-- Portfolio projects
-- Contact information
-- Social media links
+### Team Members
+- Edit the `team` array at the top of `OurTeam.jsx`
+- Avatar URLs use [DiceBear Initials API](https://www.dicebear.com/styles/initials/)
 
 ### Styling
-The website uses Tailwind CSS utility classes. You can modify the styling by:
-- Updating classes in component files
-- Adding custom CSS in `src/index.css`
-- Extending the Tailwind configuration
+- Global design tokens are in `tailwind.config.js`
+- Custom CSS in `src/index.css`
+- All components use Tailwind utility classes
 
-## Features to Add
+---
+
+## Key Implementation Notes
+
+- **Lucide icons** are `React.forwardRef` objects — always assign to a capitalized variable (`const Icon = item.icon`) before using as JSX (`<Icon />`)
+- **Contact modals** use `createPortal(modal, document.body)` to escape Framer Motion stacking contexts and render correctly above all page content
+- **ServiceModal** uses the same portal pattern — see `ServiceModal.jsx`
+- **Routing** is hash/pathname based (no React Router) — handled in `App.jsx` via `popstate` events
+
+---
+
+## Roadmap
 
 - [x] Contact form backend integration
-- [ ] Blog section
-- [ ] Testimonials section
-- [ ] Dark mode toggle
-- [ ] Multi-language support
-- [ ] Analytics integration
-- [x] Performance optimizations
-- [x] Email notifications system
 - [x] Multiple contact forms (General, Project, Schedule Call)
 - [x] Form validation and error handling
+- [x] Email notifications with auto-reply
+- [x] SEO meta tags (dynamic per page)
+- [x] Floating WhatsApp & Call buttons
+- [x] Our Team page
+- [x] Careers page
+- [x] Legal pages (Privacy Policy, Terms of Service)
+- [x] Portal-based modals (no stacking context issues)
+- [ ] Blog / Articles section
+- [ ] Testimonials section
+- [ ] Dark mode toggle
+- [ ] Analytics integration
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+---
 
 ## License
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## Support
+---
 
-For support or questions, please contact:
-- Email: hello@digitaltechsolution.com
-- Phone: +91 9761325797
+## Contact & Support
+
+- **Email**: dushyant.kumar1719@gmail.com
+- **Phone**: +91 7983614392
+- **Address**: Ram Ghat Road, Aligarh (202001)
 
 ---
 
-Built with ❤️ by DigitalTechSolution Team
+Built with ❤️ by the DigitalTechSolution Team
