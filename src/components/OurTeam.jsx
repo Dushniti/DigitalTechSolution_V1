@@ -5,36 +5,36 @@ import { Github, Linkedin, Mail } from 'lucide-react';
 const team = [
  {
     name: 'Nitika Jolly',
-    role: 'Frontend Developer',
+    role: 'Co-Founder & Frontend Developer',
     bio: 'Creates beautiful, intuitive interfaces that put user experience first and turn visitors into loyal customers.',
-    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=PS&backgroundColor=7c3aed&textColor=ffffff',
+    avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS167ThBTD6si-lhJ_HFGy5XP3nzyacy2IbfQ&s',
     socials: {
       linkedin: '#',
-      github: '#',
+      github: 'https://github.com/NitikaJolly',
       email: 'niti.digitech19@gmail.com',
     },
   },
   {
     name: 'Dushyant Kumar',
     role: 'Founder & Full-Stack Developer',
-    bio: 'Leads the vision and development of DigitalTechSolution with 5+ years of experience building scalable web and mobile products.',
-    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=DK&backgroundColor=1d4ed8&textColor=ffffff',
+    bio: 'Leads the vision and development of DigitalTechSolution with 3+ years of experience building scalable web and mobile products.',
+    avatar: 'https://s3.amazonaws.com/media.mixrank.com/profilepic/9bcc59b1f7ec6ae74954784dc2bdef5f',
     socials: {
-      linkedin: '#',
-      github: '#',
+      linkedin: 'https://www.linkedin.com/in/dushyant01999/',
+      github: 'https://github.com/Dushniti',
       email: 'dushyant.kumar1719@gmail.com',
     },
-  },
-  {
-    name: 'Ishu Mathur',
-    role: 'Backend Developer',
-    bio: 'Builds rock-solid APIs and cloud infrastructure that power high-performance applications at any scale.',
-    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=RV&backgroundColor=059669&textColor=ffffff',
-    socials: {
-      linkedin: '#',
-      github: '#',
-      email: 'ishu.mathur@gmail.com',
-    },
+  // },
+  // {
+  //   name: 'Ishu Mathur',
+  //   role: 'Backend Developer',
+  //   bio: 'Builds rock-solid APIs and cloud infrastructure that power high-performance applications at any scale.',
+  //   avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKhve0-uartb2OWGz6tHh99A6VHIgIbURdqA&s',
+  //   socials: {
+  //     linkedin: '#',
+  //     github: '#',
+  //     email: 'ishu.mathur@gmail.com',
+  //   },
   }
 //   ,
 //   {
