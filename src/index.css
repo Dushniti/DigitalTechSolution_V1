@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import 'aos/dist/aos.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -29,4 +30,15 @@
   .container-custom {
     @apply max-w-7xl mx-auto;
   }
+}
+
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0px) translateX(0px); opacity: var(--p-opacity); }
+  33%       { transform: translateY(-18px) translateX(6px);  opacity: calc(var(--p-opacity) * 1.5); }
+  66%       { transform: translateY(-8px)  translateX(-8px); opacity: calc(var(--p-opacity) * 0.7); }
+}
+
+@keyframes waveShift {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }

@@ -1,24 +1,37 @@
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, Clock, Users, Zap } from 'lucide-react';
 
 const ServiceModal = ({ isOpen, onClose, service }) => {
-  if (!service) return null;
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
-  const features = [
+  const ServiceIcon = service?.icon ?? null;
+
+  const benefits = [
     { icon: <CheckCircle className="w-5 h-5 text-green-500" />, text: 'Custom Design & Development' },
     { icon: <Clock className="w-5 h-5 text-blue-500" />, text: 'Fast Delivery & Support' },
     { icon: <Users className="w-5 h-5 text-purple-500" />, text: 'Expert Team' },
     { icon: <Zap className="w-5 h-5 text-yellow-500" />, text: 'Modern Technologies' },
   ];
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
         >
           {/* Backdrop */}
           <motion.div
@@ -36,11 +49,15 @@ const ServiceModal = ({ isOpen, onClose, service }) => {
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             className="relative bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           >
+            {service && (
+            <>
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
-                  {service.icon}
+                  {ServiceIcon
+                    ? <ServiceIcon className="w-7 h-7 text-blue-600" />
+                    : service.icon}
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">{service.title}</h2>
               </div>
@@ -77,7 +94,7 @@ const ServiceModal = ({ isOpen, onClose, service }) => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Benefits</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {features.map((feature, index) => (
+                  {benefits.map((feature, index) => (
                     <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                       {feature.icon}
                       <span className="text-gray-700 font-medium">{feature.text}</span>
@@ -177,10 +194,13 @@ const ServiceModal = ({ isOpen, onClose, service }) => {
                 </motion.button>
               </div>
             </div>
+            </>
+            )}
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

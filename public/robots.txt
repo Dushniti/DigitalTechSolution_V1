@@ -1,0 +1,12 @@
+# robots.txt — DigitalTechSolution
+# https://digitaltechsolution-v1.onrender.com
+
+User-agent: *
+Allow: /
+
+# Block build/source artifacts if ever exposed
+Disallow: /src/
+Disallow: /.git/
+Disallow: /node_modules/
+
+Sitemap: https://digitaltechsolution-v1.onrender.com/sitemap.xml
