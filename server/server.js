@@ -8,13 +8,25 @@ dotenv.config();
 
 const app = express();
 
+// Set CORS headers on EVERY response first — before any other middleware.
+// This ensures even error responses (500, 503, etc.) include CORS headers
+// so the browser shows the real error instead of a CORS error.
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 // CORS Configuration
 const corsOptions = {
-  origin: '*', // Allow all origins
+  origin: '*',
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  credentials: false, // Must be false when using '*' for origin
+  credentials: false,
   optionsSuccessStatus: 200,
 };
 
@@ -245,10 +257,29 @@ app.post('/api/get-started', async (req, res) => {
   }
 });
 
+// Health check endpoint (required for Render to detect service is alive)
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Digital Tech Solution API is running' });
+});
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 const PORT = process.env.PORT || 5000;
 
-// Start server
-app.listen(PORT, async () => {
+// Global error handler — ensures CORS headers are present even on unhandled errors
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.status(500).json({
+    success: false,
+    message: 'An unexpected server error occurred. Please try again later.'
+  });
+});
+
+// Bind to 0.0.0.0 so Render can route external traffic to the server
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on port ${PORT}`);
   // Verify email configuration on startup
   await verifyEmailConfig();
