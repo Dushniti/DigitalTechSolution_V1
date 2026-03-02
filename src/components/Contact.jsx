@@ -5,6 +5,23 @@ import { Mail, Phone, MapPin, Send, Clock, ArrowRight } from 'lucide-react';
 import config from '../config';
 
 const Contact = () => {
+  // Helper: fetch with a 60s timeout to handle Render cold starts
+  const fetchWithTimeout = async (url, options, timeout = 60000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      return response;
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        throw new Error('Request timed out. The server may be starting up — please try again in a moment.');
+      }
+      throw err;
+    } finally {
+      clearTimeout(id);
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -111,12 +128,13 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/get-started', {
+      const response = await fetchWithTimeout(`${config.apiUrl}/get-started`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        mode: 'cors',
         body: JSON.stringify(getStartedData)
       });
 
@@ -153,15 +171,13 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await fetch(`${config.apiUrl}/project`, {
+      const response = await fetchWithTimeout(`${config.apiUrl}/project`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Origin': window.location.origin
         },
         mode: 'cors',
-        credentials: 'include',
         body: JSON.stringify(projectData)
       });
 
@@ -232,15 +248,13 @@ const Contact = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${config.apiUrl}/schedule`, {
+      const response = await fetchWithTimeout(`${config.apiUrl}/schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Origin': window.location.origin
         },
         mode: 'cors',
-        credentials: 'include',
         body: JSON.stringify(scheduleData)
       });
 
@@ -279,7 +293,7 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await fetch(`${config.apiUrl}/contact`, {
+      const response = await fetchWithTimeout(`${config.apiUrl}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
