@@ -18,13 +18,17 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
-// Debug middleware to log requests
-app.use((req, res, next) => {
-  console.log(`Incoming request: ${req.method} ${req.path}`);
-  console.log('Origin:', req.headers.origin);
-  console.log('Headers:', req.headers);
-  next();
-});
+// Debug middleware to log requests (dev only)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.path}`);
+    console.log('Origin:', req.headers.origin);
+    next();
+  });
+}
+
+// Handle OPTIONS preflight for all routes
+app.options('*', cors(corsOptions));
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
@@ -61,7 +65,7 @@ app.post('/api/contact', async (req, res) => {
     // Email to admin
     const adminMailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'dushyant.kumar1719@gmail.com',
+      to: process.env.EMAIL_USER,
       subject: `New Message From ${name}`,
       html: `
         <h3>Digital Tech Solution - New Contact Form Submission</h3>
@@ -109,9 +113,13 @@ app.post('/api/contact', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in contact form:', error);
-    res.status(500).json({
+    // Return 503 for SMTP auth issues so the frontend can show a specific message
+    const isAuthError = error.code === 'EAUTH' || (error.message && error.message.includes('Invalid login'));
+    res.status(isAuthError ? 503 : 500).json({
       success: false,
-      message: 'Failed to send message. Please try again.',
+      message: isAuthError
+        ? 'Email service is temporarily unavailable. Please call us or try again later.'
+        : 'Failed to send message. Please try again.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
@@ -124,7 +132,7 @@ app.post('/api/project', async (req, res) => {
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'dushyant.kumar1719@gmail.com',
+      to: process.env.EMAIL_USER,
       subject: `New Project Request from ${name}`,
       html: `
         <h3>New Project Request</h3>
@@ -147,9 +155,12 @@ app.post('/api/project', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in project request:', error);
-    res.status(500).json({
+    const isAuthError = error.code === 'EAUTH' || (error.message && error.message.includes('Invalid login'));
+    res.status(isAuthError ? 503 : 500).json({
       success: false,
-      message: 'Failed to submit project request. Please try again.',
+      message: isAuthError
+        ? 'Email service is temporarily unavailable. Please call us or try again later.'
+        : 'Failed to submit project request. Please try again.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
@@ -162,7 +173,7 @@ app.post('/api/schedule', async (req, res) => {
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'dushyant.kumar1719@gmail.com',
+      to: process.env.EMAIL_USER,
       subject: `New Call Schedule Request from ${name}`,
       html: `
         <h3>New Call Schedule Request</h3>
@@ -183,9 +194,52 @@ app.post('/api/schedule', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in schedule request:', error);
-    res.status(500).json({
+    const isAuthError = error.code === 'EAUTH' || (error.message && error.message.includes('Invalid login'));
+    res.status(isAuthError ? 503 : 500).json({
       success: false,
-      message: 'Failed to schedule call. Please try again.',
+      message: isAuthError
+        ? 'Email service is temporarily unavailable. Please call us or try again later.'
+        : 'Failed to schedule call. Please try again.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Get Started endpoint
+app.post('/api/get-started', async (req, res) => {
+  try {
+    const { name, email, phone, interest, budget, startDate, message } = req.body;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      subject: `New Get Started Request from ${name}`,
+      html: `
+        <h3>New Get Started Request</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email || 'Not provided'}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Interest:</strong> ${interest || 'Not specified'}</p>
+        <p><strong>Budget:</strong> ${budget || 'Not specified'}</p>
+        <p><strong>Start Date:</strong> ${startDate || 'Not specified'}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message || 'N/A'}</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({
+      success: true,
+      message: 'Thank you for your interest! We will get back to you shortly.'
+    });
+  } catch (error) {
+    console.error('Error in get-started request:', error);
+    const isAuthError = error.code === 'EAUTH' || (error.message && error.message.includes('Invalid login'));
+    res.status(isAuthError ? 503 : 500).json({
+      success: false,
+      message: isAuthError
+        ? 'Email service is temporarily unavailable. Please call us or try again later.'
+        : 'Failed to submit request. Please try again.',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

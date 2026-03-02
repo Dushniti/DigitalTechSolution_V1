@@ -1,14 +1,14 @@
 // API Configuration
 const getApiUrl = () => {
-  const isProd = process.env.NODE_ENV === 'production';
-  
+  const isProd = import.meta.env.PROD;
+
   if (isProd) {
     // Production API URL
     return 'https://digitaltechsolution-v1.onrender.com/api';
   }
-  
-  // Development URL
-  return 'http://localhost:3000/api';
+
+  // In development, use a relative path so Vite's proxy handles it (no CORS)
+  return '/api';
 };
 
 const config = {
