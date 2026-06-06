@@ -33,6 +33,7 @@ const Footer = () => {
     { name: 'Home',            href: '#home',        route: '' },
     { name: 'About Us',        href: '#about',       route: '' },
     { name: 'Services',        href: '#services',    route: '' },
+    { name: 'Pricing',         href: '#/pricing',    route: 'pricing' },
     { name: 'Portfolio',       href: '#portfolio',   route: '' },
     { name: 'Contact',         href: '#contact',     route: '' },
     { name: 'Career',          href: '#/career',     route: 'career' },
@@ -280,6 +281,7 @@ const Footer = () => {
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-xs text-gray-500">
             <a href="#/privacy-policy" className="hover:text-white transition-colors duration-200">Privacy Policy</a>
             <a href="#/terms-of-service" className="hover:text-white transition-colors duration-200">Terms of Service</a>
+            <a href="#/pricing" className="hover:text-white transition-colors duration-200">Pricing</a>
             <a href="#" className="hover:text-white transition-colors duration-200">Cookie Policy</a>
           </div>
         </motion.div>

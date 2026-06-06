@@ -11,6 +11,7 @@ const navItems = [
   { name: 'Services',  href: '#services' },
   { name: 'Portfolio', href: '#portfolio' },
   { name: 'Contact',   href: '#contact' },
+  { name: 'Pricing',   href: '#/pricing' },
 ];
 
 /* Slide-in mobile menu variants */

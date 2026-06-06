@@ -14,6 +14,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import Career from './components/Career';
 import OurTeam from './components/OurTeam';
+import Pricing from './components/Pricing';
 
 const getCurrentRoute = () => {
   const hashRoute = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
@@ -61,6 +62,7 @@ function App() {
   const isTermsPage       = currentRoute === 'terms-of-service';
   const isCareerPage      = currentRoute === 'career';
   const isOurTeamPage     = currentRoute === 'our-team';
+  const isPricingPage     = currentRoute === 'pricing';
   const isStandalonePage  = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage;
 
   // ── Per-route SEO ──────────────────────────────────────────────────────
@@ -85,6 +87,11 @@ function App() {
       description: 'Meet the passionate designers, developers, and strategists behind DigitalTechSolution.',
       path:        '/our-team',
     },
+    pricing: {
+      title: 'Pricing',
+      description: 'Affordable web development and digital solutions — pricing and packages for businesses.',
+      path: '/pricing',
+    },
     default: {
       title:       'Professional Web, App & Software Development',
       description: 'DigitalTechSolution builds fast, SEO-ready websites, mobile apps, and custom software that grow your business. Get a free consultation today.',
@@ -106,6 +113,10 @@ function App() {
 
     if (isCareerPage) {
       return <Career />;
+    }
+
+    if (isPricingPage) {
+      return <Pricing />;
     }
 
     if (isOurTeamPage) {
