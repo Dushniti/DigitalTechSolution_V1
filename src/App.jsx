@@ -58,9 +58,13 @@ function App() {
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem('theme');
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = storedTheme === 'dark' || storedTheme === 'light'
       ? storedTheme
-      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      : isMobile
+        ? 'dark'
+        : prefersDark ? 'dark' : 'light';
 
     setTheme(initialTheme);
   }, []);
