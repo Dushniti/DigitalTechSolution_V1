@@ -54,6 +54,22 @@ function App() {
     });
   }, []);
 
+  const [theme, setTheme] = useState('light');
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem('theme');
+    const initialTheme = storedTheme === 'dark' || storedTheme === 'light'
+      ? storedTheme
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
+    setTheme(initialTheme);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    window.localStorage.setItem('theme', theme);
+  }, [theme]);
+
   useEffect(() => {
     AOS.refresh();
   }, [currentRoute]);
@@ -136,7 +152,7 @@ function App() {
 
   return (
     <div className="App">
-      <Navbar />
+      <Navbar theme={theme} toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />
       <main>{renderPageContent()}</main>
       <Footer />
       {!isStandalonePage && <WhatsAppFloat />}

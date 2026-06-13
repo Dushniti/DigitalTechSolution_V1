@@ -30,14 +30,14 @@ const Career = () => {
   ];
 
   return (
-    <section className="relative pt-24 pb-16 min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50">
+    <section className="relative pt-24 pb-16 min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <TechBackground />
       <div className="relative z-10 container-custom px-4 sm:px-6 lg:px-8 mx-auto max-w-5xl">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="rounded-2xl bg-white/80 backdrop-blur-sm border border-blue-100 shadow-lg p-6 sm:p-10 mb-8"
+          className="rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-blue-100 dark:border-slate-700 shadow-lg p-6 sm:p-10 mb-8"
         >
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
             Career Opportunities
@@ -54,7 +54,7 @@ const Career = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.08 }}
-              className="rounded-xl bg-white border border-blue-100 shadow-sm p-6 hover:shadow-md transition-shadow duration-300"
+              className="rounded-xl bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow duration-300"
             >
               <h2 className="text-xl font-semibold text-gray-900 mb-3">{job.title}</h2>
               <div className="flex flex-wrap gap-3 mb-4 text-sm">

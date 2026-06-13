@@ -74,7 +74,7 @@ const team = [
 
 const OurTeam = () => {
   return (
-    <section className="relative pt-24 pb-16 min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50">
+    <section className="relative pt-24 pb-16 min-h-screen bg-gradient-to-b from-blue-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <TechBackground />
       <div className="relative z-10 container-custom px-4 sm:px-6 lg:px-8 mx-auto max-w-6xl">
 

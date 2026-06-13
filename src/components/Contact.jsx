@@ -357,8 +357,7 @@ const Contact = () => {
   return (
     <section
       id="contact"
-      className="relative section-padding overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #f1f5ff 0%, #f8faff 50%, #ffffff 100%)' }}
+      className="relative section-padding overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
     >
       {/* Decorative blobs */}
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-100 rounded-full opacity-40 blur-3xl pointer-events-none" />

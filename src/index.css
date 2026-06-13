@@ -11,6 +11,110 @@
   
   body {
     font-family: 'Inter', sans-serif;
+    background-color: #f8fbff;
+    color: #111827;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  html.dark body {
+    background-color: #020617;
+    color: #e2e8f0;
+  }
+
+  html.dark .bg-white {
+    background-color: #0f172a !important;
+  }
+
+  html.dark .bg-white,
+  html.dark .bg-gray-50,
+  html.dark .bg-slate-50,
+  html.dark .bg-slate-100,
+  html.dark .bg-slate-200,
+  html.dark .bg-slate-300,
+  html.dark .bg-blue-50,
+  html.dark .bg-indigo-50,
+  html.dark .bg-cyan-50,
+  html.dark .bg-emerald-50,
+  html.dark .bg-violet-50,
+  html.dark .bg-pink-50,
+  html.dark .bg-orange-50,
+  html.dark .bg-sky-50,
+  html.dark .bg-white\/5,
+  html.dark .bg-white\/10,
+  html.dark .bg-white\/20,
+  html.dark .bg-white\/30,
+  html.dark .bg-white\/40,
+  html.dark .bg-white\/50,
+  html.dark .bg-white\/80,
+  html.dark .bg-white\/90 {
+    background-color: #0f172a !important;
+  }
+
+  html.dark .from-blue-50,
+  html.dark .from-indigo-50,
+  html.dark .from-cyan-50,
+  html.dark .from-emerald-50,
+  html.dark .from-violet-50,
+  html.dark .from-pink-50,
+  html.dark .from-orange-50,
+  html.dark .from-sky-50,
+  html.dark .from-white,
+  html.dark .from-gray-50,
+  html.dark .from-slate-50,
+  html.dark .via-white,
+  html.dark .via-slate-50,
+  html.dark .to-white,
+  html.dark .to-slate-50,
+  html.dark .to-gray-50 {
+    color: inherit !important;
+    background-color: #0f172a !important;
+  }
+
+  html.dark .border-gray-100,
+  html.dark .border-gray-200,
+  html.dark .border-blue-100,
+  html.dark .border-slate-100,
+  html.dark .border-slate-200,
+  html.dark .border-white\/5,
+  html.dark .border-white\/10,
+  html.dark .border-white\/20,
+  html.dark .border-white\/30,
+  html.dark .border-white\/40 {
+    border-color: #334155 !important;
+  }
+
+  html.dark .shadow-sm,
+  html.dark .shadow-lg,
+  html.dark .shadow-xl,
+  html.dark .shadow-2xl {
+    box-shadow: 0 15px 40px rgba(15,23,42,0.35) !important;
+  }
+
+  html.dark .text-gray-900,
+  html.dark .text-gray-800,
+  html.dark .text-gray-700 {
+    color: #e2e8f0 !important;
+  }
+
+  html.dark .text-gray-600,
+  html.dark .text-gray-500,
+  html.dark .text-gray-400 {
+    color: #94a3b8 !important;
+  }
+
+  html.dark .border-gray-100,
+  html.dark .border-gray-200,
+  html.dark .border-blue-100,
+  html.dark .border-slate-100,
+  html.dark .border-slate-200 {
+    border-color: #334155 !important;
+  }
+
+  html.dark .shadow-sm,
+  html.dark .shadow-lg,
+  html.dark .shadow-xl,
+  html.dark .shadow-2xl {
+    box-shadow: 0 15px 40px rgba(15,23,42,0.35) !important;
   }
 }
 

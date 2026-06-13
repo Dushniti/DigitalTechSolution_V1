@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Moon, Sun } from 'lucide-react';
 
 const logoSrc =
   'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
@@ -11,7 +11,7 @@ const navItems = [
   { name: 'Services',  href: '#services' },
   { name: 'Portfolio', href: '#portfolio' },
   { name: 'Contact',   href: '#contact' },
-  { name: 'Pricing',   href: '#/pricing' },
+  // { name: 'Pricing',   href: '#/pricing' },
 ];
 
 /* Slide-in mobile menu variants */
@@ -38,7 +38,7 @@ const mobileItemVariants = {
   }),
 };
 
-const Navbar = () => {
+const Navbar = ({ theme, toggleTheme }) => {
   const [isOpen,    setIsOpen]    = useState(false);
   const [scrolled, setScrolled]  = useState(false);
   const [active,   setActive]    = useState('');
@@ -81,7 +81,7 @@ const Navbar = () => {
         transition={{ duration: 0.55, ease: 'easeOut' }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)]'
+            ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] dark:bg-slate-950/95 dark:border-slate-800'
             : 'bg-transparent border-b border-transparent'
         }`}
       >
@@ -136,7 +136,7 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* ── Desktop CTA ── */}
+            {/* ── Desktop CTA + theme toggle ── */}
             <div className="hidden md:flex items-center gap-3">
               <motion.a
                 href="#contact"
@@ -147,6 +147,14 @@ const Navbar = () => {
               >
                 Get Free Consultation
               </motion.a>
+              <button
+                type="button"
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                onClick={toggleTheme}
+                className="grid place-items-center w-11 h-11 rounded-full border border-slate-200 bg-white text-slate-700 transition-all duration-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
             </div>
 
             {/* ── Hamburger ── */}
@@ -245,6 +253,15 @@ const Navbar = () => {
 
               {/* Drawer CTA */}
               <div className="px-4 pb-8 pt-4 border-t border-white/8">
+                <button
+                  type="button"
+                  aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                  onClick={toggleTheme}
+                  className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-full border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                  {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                  <span className="sr-only">{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</span>
+                </button>
                 <motion.a
                   href="#contact"
                   custom={navItems.length}

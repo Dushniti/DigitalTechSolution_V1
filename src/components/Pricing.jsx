@@ -26,16 +26,16 @@ import { Globe, Server, Smartphone, Cloud } from 'lucide-react'
 
 const PricingCard = ({ title, price, features, highlighted }) => {
   return (
-    <div className={`relative transform transition-all duration-300 rounded-2xl p-6 md:p-8 bg-white border ${highlighted ? 'border-indigo-500 shadow-2xl scale-105' : 'border-gray-200 hover:shadow-lg hover:-translate-y-1'}`}>
+    <div className={`relative transform transition-all duration-300 rounded-2xl p-6 md:p-8 bg-white border dark:bg-slate-950 ${highlighted ? 'border-indigo-500 shadow-2xl scale-105' : 'border-gray-200 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1'}`}>
       {highlighted && (
         <div className="absolute -top-3 right-4 inline-flex items-center px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-semibold shadow">Most Popular</div>
       )}
 
       <div className="flex items-center justify-between">
-        <h3 className={`text-lg font-semibold ${highlighted ? 'text-gray-900' : 'text-gray-900'}`}>{title}</h3>
+        <h3 className={`text-lg font-semibold ${highlighted ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-white'}`}>{title}</h3>
         <div className="text-right">
-          <div className="text-2xl font-extrabold text-gray-900">{price}</div>
-          <div className="text-sm text-gray-500">one-time / starting</div>
+          <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{price}</div>
+          <div className="text-sm text-gray-500 dark:text-slate-400">one-time / starting</div>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ const PricingCard = ({ title, price, features, highlighted }) => {
             const message = `Hello, I'm interested in the ${title} plan (${pkgType}) from the Packages. The package price is ${price}. Please provide complete details.`
             openWhatsApp(message)
           }}
-          className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 ${highlighted ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-md hover:opacity-95' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}>
+          className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 ${highlighted ? 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-md hover:opacity-95' : 'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700'}`}>
           Choose Plan
         </button>
       </div>
@@ -111,7 +111,7 @@ export default function Pricing() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-slate-950 dark:to-slate-950">
       {/* Hero — match main site hero theme and avoid navbar overlap */}
       <section
         id="pricing-hero"
@@ -129,25 +129,25 @@ export default function Pricing() {
       </section>
 
         {/* Services Pricing */}
-        <section className="mt-6 bg-white rounded-2xl p-6 md:p-8 border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900">Services & Pricing</h2>
-          <p className="mt-2 text-sm text-gray-500">Pick individual services or choose a package for the best value.</p>
+        <section className="mt-6 bg-white rounded-2xl p-6 md:p-8 border border-gray-100 dark:bg-slate-950 dark:border-slate-800">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Services & Pricing</h2>
+          <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">Pick individual services or choose a package for the best value.</p>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {services.map((s) => {
               const Icon = s.icon
               return (
-                <div key={s.name} className="group relative rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 border border-gray-100 hover:shadow-lg transition-shadow duration-200">
+                <div key={s.name} className="group relative rounded-xl p-5 bg-gradient-to-br from-white to-gray-50 border border-gray-100 hover:shadow-lg transition-shadow duration-200 dark:from-slate-900 dark:to-slate-950 dark:border-slate-700">
                   <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-lg bg-indigo-50 text-indigo-600 shrink-0">
+                    <div className="p-3 rounded-lg bg-indigo-50 text-indigo-600 shrink-0 dark:bg-indigo-800/20">
                       <Icon size={22} />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-gray-900">{s.name}</h3>
-                        <div className="text-sm font-bold text-gray-900">{s.price}</div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{s.name}</h3>
+                        <div className="text-sm font-bold text-gray-900 dark:text-slate-100">{s.price}</div>
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">{s.desc}</p>
+                      <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{s.desc}</p>
                     </div>
                   </div>
                   <div className="mt-4">
@@ -170,9 +170,9 @@ export default function Pricing() {
         </section>
 
         {/* Packages */}
-        <section id="packages" className="mt-12 bg-white rounded-2xl p-6 md:p-8 border border-gray-100">
-          <h2 className="text-2xl font-semibold text-gray-900">Packages</h2>
-          <p className="mt-2 text-sm text-gray-500">Clear, predictable pricing for growing businesses.</p>
+        <section id="packages" className="mt-12 bg-white rounded-2xl p-6 md:p-8 border border-gray-100 dark:bg-slate-950 dark:border-slate-800">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-slate-100">Packages</h2>
+          <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">Clear, predictable pricing for growing businesses.</p>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             {packages.map((p) => (
