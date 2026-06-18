@@ -4,7 +4,7 @@ const getApiUrl = () => {
 
   if (isProd) {
     // Production API URL
-    return 'https://digitaltechsolution-v1.onrender.com/api';
+    return 'https://dts-backend-8oqr.onrender.com/api';
   }
 
   // In development, use a relative path so Vite's proxy handles it (no CORS)
