@@ -15,6 +15,7 @@ import TermsOfService from './components/TermsOfService';
 import Career from './components/Career';
 import OurTeam from './components/OurTeam';
 import Pricing from './components/Pricing';
+import Dashboard from './components/Dashboard';
 
 const getCurrentRoute = () => {
   const hashRoute = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
@@ -83,7 +84,8 @@ function App() {
   const isCareerPage      = currentRoute === 'career';
   const isOurTeamPage     = currentRoute === 'our-team';
   const isPricingPage     = currentRoute === 'pricing';
-  const isStandalonePage  = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage;
+  const isDashboard       = currentRoute === 'dashboard';
+  const isStandalonePage  = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage || isDashboard;
 
   // ── Per-route SEO ──────────────────────────────────────────────────────
   const seoMap = {
@@ -111,6 +113,11 @@ function App() {
       title: 'Pricing',
       description: 'Affordable web development and digital solutions — pricing and packages for businesses.',
       path: '/pricing',
+    },
+    dashboard: {
+      title: 'Admin Dashboard',
+      description: 'DigitalTechSolution Admin Dashboard.',
+      path: '/dashboard',
     },
     default: {
       title:       'Professional Web, App & Software Development',
@@ -143,6 +150,15 @@ function App() {
       return <OurTeam />;
     }
 
+    if (isDashboard) {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        window.location.hash = ''; // Force redirect to home
+        return null; // Do not render anything
+      }
+      return <Dashboard />;
+    }
+
     return (
       <>
         <Hero />
@@ -156,9 +172,9 @@ function App() {
 
   return (
     <div className="App">
-      <Navbar theme={theme} toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />
+      {!isDashboard && <Navbar theme={theme} toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />}
       <main>{renderPageContent()}</main>
-      <Footer />
+      {!isDashboard && <Footer />}
       {!isStandalonePage && <WhatsAppFloat />}
       {!isStandalonePage && <CallFloat />}
     </div>
