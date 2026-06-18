@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 const SITE_NAME = 'DigitalTechSolution';
-const SITE_URL  = 'https://digitaltechsolution-v1.onrender.com';
+const SITE_URL  = 'https://dts-backend-8oqr.onrender.com';
 const OG_IMAGE  =
   'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
 
