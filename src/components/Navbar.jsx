@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Moon, Sun } from 'lucide-react';
+import { Menu, X, Moon, Sun, LogIn } from 'lucide-react';
+import LoginModal from './LoginModal';
 
 const logoSrc =
   'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
@@ -42,6 +43,7 @@ const Navbar = ({ theme, toggleTheme }) => {
   const [isOpen,    setIsOpen]    = useState(false);
   const [scrolled, setScrolled]  = useState(false);
   const [active,   setActive]    = useState('');
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   /* ── Scroll detection ── */
   useEffect(() => {
@@ -147,6 +149,14 @@ const Navbar = ({ theme, toggleTheme }) => {
               >
                 Get Free Consultation
               </motion.a>
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 transition-all duration-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                <LogIn size={16} />
+                Login
+              </button>
               <button
                 type="button"
                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -262,6 +272,17 @@ const Navbar = ({ theme, toggleTheme }) => {
                   {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                   <span className="sr-only">{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setIsLoginModalOpen(true);
+                  }}
+                  className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                  <LogIn size={18} />
+                  Login
+                </button>
                 <motion.a
                   href="#contact"
                   custom={navItems.length}
@@ -278,6 +299,12 @@ const Navbar = ({ theme, toggleTheme }) => {
           </>
         )}
       </AnimatePresence>
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+      />
     </>
   );
 };
