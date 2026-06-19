@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye
 } from 'lucide-react';
 import config from '../config';
 
@@ -16,6 +16,8 @@ const authHeaders = () => ({
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
   const [email, setEmail] = useState(user.email || '');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState(user.role || 'user');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,11 +25,16 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Build only changed / non-empty fields
+    const payload = { email, role };
+    if (password) payload.password = password;
+
     try {
       const res = await fetch(`${config.apiUrl}/users/${user._id}`, {
         method: 'PUT',
         headers: authHeaders(),
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {
@@ -50,7 +57,10 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md p-6"
       >
         <div className="flex justify-between items-center mb-5">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Edit User</h3>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Edit User</h3>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Update email, password or role</p>
+          </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-600 transition-colors">
             <X size={18} />
           </button>
@@ -63,6 +73,7 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Email</label>
             <input
@@ -73,6 +84,44 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
+
+          {/* New Password (optional) */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              New Password <span className="font-normal text-gray-400 dark:text-gray-500">(leave blank to keep current)</span>
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              minLength={password ? 6 : undefined}
+              placeholder="Min. 6 characters"
+              className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+          </div>
+
+          {/* Role */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Role</label>
+            <div className="flex gap-3">
+              {['user', 'Admin'].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${role === r
+                      ? r === 'Admin'
+                        ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
+                        : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
+                      : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                    }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-1">
             <button
               type="button"
@@ -98,6 +147,7 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
 // ─── Create User Modal ───────────────────────────────────────────────────────────
 const CreateUserModal = ({ onClose, onCreated }) => {
   const [form, setForm] = useState({ email: '', password: '' });
+  const [role, setRole] = useState('user');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -111,7 +161,7 @@ const CreateUserModal = ({ onClose, onCreated }) => {
       const res = await fetch(`${config.apiUrl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, role }),
       });
       const data = await res.json();
       if (data.success) {
@@ -136,7 +186,7 @@ const CreateUserModal = ({ onClose, onCreated }) => {
         <div className="flex justify-between items-center mb-5">
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create New User</h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Register a new admin account</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Set email, password and role</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-600 transition-colors">
             <X size={18} />
@@ -175,6 +225,29 @@ const CreateUserModal = ({ onClose, onCreated }) => {
               className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
+
+          {/* Role */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Role</label>
+            <div className="flex gap-3">
+              {['user', 'Admin'].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${role === r
+                      ? r === 'Admin'
+                        ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
+                        : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
+                      : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                    }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-1">
             <button
               type="button"
@@ -364,6 +437,7 @@ const UsersModule = () => {
                 <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Login</th>
                   <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
@@ -386,6 +460,14 @@ const UsersModule = () => {
                         </div>
                         <span className="font-medium text-gray-800 dark:text-gray-200">{user.email}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${user.role === 'Admin'
+                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        }`}>
+                        {user.role || 'user'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs">
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
@@ -420,6 +502,73 @@ const UsersModule = () => {
   );
 };
 
+// ─── View Message Modal ───────────────────────────────────────────────────────
+const ViewMessageModal = ({ contact: c, onClose }) => (
+  <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <motion.div
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.95, opacity: 0 }}
+      className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-lg p-6"
+    >
+      {/* Header */}
+      <div className="flex justify-between items-start mb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center text-white font-bold text-base shrink-0">
+            {c.name?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <div>
+            <p className="font-bold text-gray-900 dark:text-white">{c.name}</p>
+            <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${c.status === 'new' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
+                  'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              }`}>{c.status || 'new'}</span>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Contact info */}
+      <div className="space-y-2 mb-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
+        {c.email && (
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <Mail size={14} className="shrink-0 text-blue-500" /> {c.email}
+          </div>
+        )}
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+          <Phone size={14} className="shrink-0 text-blue-500" /> {c.phone}
+        </div>
+        {c.submittedAt && (
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+            <Calendar size={14} className="shrink-0 text-blue-500" />
+            {new Date(c.submittedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          </div>
+        )}
+      </div>
+
+      {/* Full message */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Message</p>
+        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 max-h-64 overflow-y-auto">
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{c.message}</p>
+        </div>
+      </div>
+
+      <button
+        onClick={onClose}
+        className="mt-5 w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+      >
+        Close
+      </button>
+    </motion.div>
+  </div>
+);
+
 // ─── Contacts Module ──────────────────────────────────────────────────────────
 const ContactsModule = () => {
   const [contacts, setContacts] = useState([]);
@@ -427,6 +576,7 @@ const ContactsModule = () => {
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+  const [viewContact, setViewContact] = useState(null);
 
   const fetchContacts = async () => {
     setLoading(true);
@@ -452,7 +602,7 @@ const ContactsModule = () => {
   // ── Pagination calc ──
   const totalPages = Math.max(1, Math.ceil(contacts.length / perPage));
   const startIndex = (currentPage - 1) * perPage;
-  const paginated   = contacts.slice(startIndex, startIndex + perPage);
+  const paginated = contacts.slice(startIndex, startIndex + perPage);
 
   const handlePerPageChange = (val) => {
     setPerPage(val);
@@ -472,7 +622,7 @@ const ContactsModule = () => {
       pages.push(1);
       if (currentPage > 3) pages.push('...');
       const start = Math.max(2, currentPage - 1);
-      const end   = Math.min(totalPages - 1, currentPage + 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
       for (let i = start; i <= end; i++) pages.push(i);
       if (currentPage < totalPages - 2) pages.push('...');
       pages.push(totalPages);
@@ -482,6 +632,13 @@ const ContactsModule = () => {
 
   return (
     <div>
+      {/* View Message Modal */}
+      <AnimatePresence>
+        {viewContact && (
+          <ViewMessageModal contact={viewContact} onClose={() => setViewContact(null)} />
+        )}
+      </AnimatePresence>
+
       {/* ── Header ── */}
       <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
         <div>
@@ -499,11 +656,10 @@ const ContactsModule = () => {
                 <button
                   key={n}
                   onClick={() => handlePerPageChange(n)}
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    perPage === n
+                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${perPage === n
                       ? 'bg-blue-600 text-white'
                       : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   {n}
                 </button>
@@ -555,11 +711,10 @@ const ContactsModule = () => {
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white text-sm">{c.name}</p>
-                        <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${
-                          c.status === 'new'   ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                          c.status === 'read'  ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
-                                                 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        }`}>{c.status || 'new'}</span>
+                        <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${c.status === 'new' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                            c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
+                              'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          }`}>{c.status || 'new'}</span>
                       </div>
                     </div>
                     <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
@@ -585,6 +740,14 @@ const ContactsModule = () => {
 
                   <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3">
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">{c.message}</p>
+                    {(c.message?.length > 60 || c.message?.includes('\n')) && (
+                      <button
+                        onClick={() => setViewContact(c)}
+                        className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                      >
+                        <Eye size={12} /> View full message
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -615,11 +778,10 @@ const ContactsModule = () => {
                     <button
                       key={p}
                       onClick={() => goToPage(p)}
-                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${
-                        p === currentPage
+                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${p === currentPage
                           ? 'bg-blue-600 text-white shadow-sm shadow-blue-300'
                           : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700'
-                      }`}
+                        }`}
                     >
                       {p}
                     </button>
@@ -684,7 +846,7 @@ const Dashboard = () => {
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'users',    label: 'Users',    icon: Users },
+    { id: 'users', label: 'Users', icon: Users },
     { id: 'contacts', label: 'Messages', icon: MessageSquare },
   ];
 
@@ -692,9 +854,25 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col md:flex-row">
       {/* ── Sidebar ── */}
       <aside className="w-full md:w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-sm shrink-0">
-        <div className="p-6 border-b border-gray-200 dark:border-slate-800">
-          <h2 className="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">DTS Admin</h2>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Management Dashboard</p>
+        <div className="p-5 border-b border-gray-200 dark:border-slate-800">
+          <a
+            href="#home"
+            className="flex items-center gap-2.5"
+          >
+            <img
+              src="https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw"
+              alt="DigitalTechSolution logo"
+              className="w-9 h-9 rounded-lg object-cover bg-white ring-1 ring-blue-100 dark:ring-slate-700 shrink-0"
+              referrerPolicy="no-referrer"
+              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }}
+            />
+            <div>
+              <p className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent leading-tight">
+                DigitalTechSolution
+              </p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">Management Dashboard</p>
+            </div>
+          </a>
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
@@ -702,11 +880,10 @@ const Dashboard = () => {
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                activeTab === id
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === id
                   ? 'bg-blue-50 dark:bg-blue-900/25 text-blue-600 dark:text-blue-400'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
-              }`}
+                }`}
             >
               <Icon size={17} />
               {label}
@@ -716,25 +893,33 @@ const Dashboard = () => {
             </button>
           ))}
         </nav>
-
-        <div className="p-4 border-t border-gray-200 dark:border-slate-800">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-          >
-            <LogOut size={17} />
-            Logout
-          </button>
-        </div>
       </aside>
 
       {/* ── Main Content ── */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto min-h-screen">
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
-            {activeTab === 'overview' ? 'Dashboard Overview' : activeTab === 'contacts' ? 'Contact Messages' : 'Users'}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Welcome back, Admin!</p>
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
+              {activeTab === 'overview' ? 'Dashboard Overview' : activeTab === 'contacts' ? 'Contact Messages' : 'Users'}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Welcome back, Admin!</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => { sessionStorage.removeItem('_dashRedirected'); window.location.hash = 'home'; }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm transition-all"
+            >
+              <Home size={15} />
+              <span className="hidden sm:inline">Home</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 shadow-sm shadow-red-200 dark:shadow-red-900/30 transition-all"
+            >
+              <LogOut size={15} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
         </header>
 
         <AnimatePresence mode="wait">
@@ -746,7 +931,7 @@ const Dashboard = () => {
             transition={{ duration: 0.2 }}
           >
             {activeTab === 'overview' && <OverviewModule onNavigate={setActiveTab} />}
-            {activeTab === 'users'    && <UsersModule />}
+            {activeTab === 'users' && <UsersModule />}
             {activeTab === 'contacts' && <ContactsModule />}
           </motion.div>
         </AnimatePresence>
