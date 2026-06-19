@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Moon, Sun, LogIn } from 'lucide-react';
+import { Menu, X, Moon, Sun, LogIn, LayoutDashboard, LogOut, UserCircle2 } from 'lucide-react';
 import LoginModal from './LoginModal';
 
 const logoSrc =
   'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
 
 const navItems = [
-  { name: 'Home',      href: '#home' },
-  { name: 'About Us',  href: '#about' },
-  { name: 'Services',  href: '#services' },
+  { name: 'Home', href: '#home' },
+  { name: 'About Us', href: '#about' },
+  { name: 'Services', href: '#services' },
   { name: 'Portfolio', href: '#portfolio' },
-  { name: 'Contact',   href: '#contact' },
+  { name: 'Contact', href: '#contact' },
   // { name: 'Pricing',   href: '#/pricing' },
 ];
 
@@ -31,7 +31,7 @@ const mobileMenuVariants = {
 };
 
 const mobileItemVariants = {
-  hidden:  { opacity: 0, x: 24 },
+  hidden: { opacity: 0, x: 24 },
   visible: (i) => ({
     opacity: 1,
     x: 0,
@@ -40,10 +40,44 @@ const mobileItemVariants = {
 };
 
 const Navbar = ({ theme, toggleTheme }) => {
-  const [isOpen,    setIsOpen]    = useState(false);
-  const [scrolled, setScrolled]  = useState(false);
-  const [active,   setActive]    = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [active, setActive] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('adminToken'));
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  // Keep login state in sync with localStorage changes
+  useEffect(() => {
+    const sync = () => setIsLoggedIn(!!localStorage.getItem('adminToken'));
+    window.addEventListener('storage', sync);
+    // Also poll on focus (same-tab logout/login)
+    window.addEventListener('focus', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('focus', sync);
+    };
+  }, []);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    sessionStorage.removeItem('_dashRedirected');
+    setIsLoggedIn(false);
+    setProfileOpen(false);
+    window.location.hash = '';
+  };
 
   /* ── Scroll detection ── */
   useEffect(() => {
@@ -79,13 +113,12 @@ const Navbar = ({ theme, toggleTheme }) => {
     <>
       <motion.nav
         initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0,   opacity: 1 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.55, ease: 'easeOut' }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
             ? 'bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] dark:bg-slate-950/95 dark:border-slate-800'
             : 'bg-transparent border-b border-transparent'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-[70px]">
@@ -104,11 +137,10 @@ const Navbar = ({ theme, toggleTheme }) => {
                 referrerPolicy="no-referrer"
                 onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }}
               />
-              <span className={`text-base sm:text-lg font-extrabold tracking-tight transition-colors duration-300 ${
-                scrolled
+              <span className={`text-base sm:text-lg font-extrabold tracking-tight transition-colors duration-300 ${scrolled
                   ? 'bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent'
                   : 'bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent'
-              }`}>
+                }`}>
                 DigitalTechSolution
               </span>
             </motion.a>
@@ -120,8 +152,7 @@ const Navbar = ({ theme, toggleTheme }) => {
                   key={item.name}
                   href={item.href}
                   onClick={() => handleNavClick(item.name)}
-                  className={`group relative px-4 py-2 text-sm font-medium transition-colors duration-200 ${
-                      scrolled ? 'text-gray-600 hover:text-blue-600' : 'text-gray-300 hover:text-white'
+                  className={`group relative px-4 py-2 text-sm font-medium transition-colors duration-200 ${scrolled ? 'text-gray-600 hover:text-blue-600' : 'text-gray-300 hover:text-white'
                     }`}
                 >
                   {item.name}
@@ -149,14 +180,56 @@ const Navbar = ({ theme, toggleTheme }) => {
               >
                 Get Free Consultation
               </motion.a>
-              <button
-                type="button"
-                onClick={() => setIsLoginModalOpen(true)}
-                className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 transition-all duration-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-              >
-                <LogIn size={16} />
-                Login
-              </button>
+
+              {/* ── Auth: Profile avatar OR Login button ── */}
+              {isLoggedIn ? (
+                <div className="relative" ref={profileRef}>
+                  <button
+                    type="button"
+                    onClick={() => setProfileOpen((v) => !v)}
+                    className="hidden lg:flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-md shadow-blue-500/30 hover:scale-110 transition-transform duration-200"
+                  >
+                    <UserCircle2 size={19} />
+                  </button>
+
+                  <AnimatePresence>
+                    {profileOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden z-50"
+                      >
+                        <a
+                          href="#dashboard"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        >
+                          <LayoutDashboard size={15} /> Dashboard
+                        </a>
+                        <div className="border-t border-gray-100 dark:border-slate-800" />
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          <LogOut size={15} /> Logout
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 transition-all duration-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                >
+                  <LogIn size={16} />
+                  Login
+                </button>
+              )}
+
               <button
                 type="button"
                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -171,19 +244,18 @@ const Navbar = ({ theme, toggleTheme }) => {
             <button
               onClick={() => setIsOpen((v) => !v)}
               aria-label="Toggle menu"
-              className={`md:hidden relative z-50 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 focus:outline-none ${
-                scrolled
+              className={`md:hidden relative z-50 w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 focus:outline-none ${scrolled
                   ? 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
                   : 'text-gray-300 hover:text-white hover:bg-white/10'
-              }`}
+                }`}
             >
               <AnimatePresence mode="wait" initial={false}>
                 {isOpen ? (
                   <motion.span
                     key="close"
                     initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0,   opacity: 1 }}
-                    exit={{   rotate:  90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     <X size={22} />
@@ -191,9 +263,9 @@ const Navbar = ({ theme, toggleTheme }) => {
                 ) : (
                   <motion.span
                     key="open"
-                    initial={{ rotate: 90,  opacity: 0 }}
-                    animate={{ rotate: 0,   opacity: 1 }}
-                    exit={{   rotate: -90, opacity: 0 }}
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     <Menu size={22} />
@@ -247,11 +319,10 @@ const Navbar = ({ theme, toggleTheme }) => {
                     initial="hidden"
                     animate="visible"
                     onClick={() => handleNavClick(item.name)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      active === item.name
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${active === item.name
                         ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
                         : 'text-gray-300 hover:text-white hover:bg-white/8'
-                    }`}
+                      }`}
                   >
                     {item.name}
                     {active === item.name && (
@@ -272,17 +343,37 @@ const Navbar = ({ theme, toggleTheme }) => {
                   {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                   <span className="sr-only">{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setIsLoginModalOpen(true);
-                  }}
-                  className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                >
-                  <LogIn size={18} />
-                  Login
-                </button>
+                {/* Mobile: Auth button */}
+                {isLoggedIn ? (
+                  <>
+                    <a
+                      href="#dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all"
+                    >
+                      <LayoutDashboard size={17} /> Dashboard
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => { setIsOpen(false); handleLogout(); }}
+                      className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all"
+                    >
+                      <LogOut size={17} /> Logout
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setIsLoginModalOpen(true);
+                    }}
+                    className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <LogIn size={18} />
+                    Login
+                  </button>
+                )}
                 <motion.a
                   href="#contact"
                   custom={navItems.length}
@@ -301,9 +392,9 @@ const Navbar = ({ theme, toggleTheme }) => {
       </AnimatePresence>
 
       {/* Login Modal */}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
       />
     </>
   );

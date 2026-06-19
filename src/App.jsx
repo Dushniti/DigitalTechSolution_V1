@@ -30,6 +30,9 @@ const getCurrentRoute = () => {
 function App() {
   const [currentRoute, setCurrentRoute] = useState(getCurrentRoute());
 
+
+
+
   useEffect(() => {
     const handleRouteChange = () => setCurrentRoute(getCurrentRoute());
 
@@ -129,6 +132,8 @@ function App() {
   const currentSEO = seoMap[currentRoute] ?? seoMap.default;
   useSEO(currentSEO);
 
+  const isHomePage = currentRoute === 'home';
+
   const renderPageContent = () => {
     if (isPrivacyPage) {
       return <PrivacyPolicy />;
@@ -153,12 +158,13 @@ function App() {
     if (isDashboard) {
       const token = localStorage.getItem('adminToken');
       if (!token) {
-        window.location.hash = ''; // Force redirect to home
-        return null; // Do not render anything
+        window.location.hash = 'home'; // Force redirect to home
+        return null;
       }
       return <Dashboard />;
     }
 
+    // Both '' and 'home' render the main home page
     return (
       <>
         <Hero />
