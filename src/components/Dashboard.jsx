@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList
 } from 'lucide-react';
 import config from '../config';
 
@@ -23,6 +23,9 @@ const getRoleFromToken = () => {
     return null;
   }
 };
+
+import SalaryModule from './SalaryModule';
+import RegularizationModule from './RegularizationModule';
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
@@ -823,10 +826,14 @@ const ContactsModule = () => {
 const OverviewModule = ({ onNavigate }) => (
   <div>
     <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Overview</h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       {[
         { title: 'Manage Users', desc: 'View, edit or delete admin users', icon: Users, color: 'from-blue-500 to-cyan-400', tab: 'users' },
         { title: 'Contact Messages', desc: 'View all contact form submissions', icon: MessageSquare, color: 'from-indigo-500 to-blue-400', tab: 'contacts' },
+        { title: 'Attendance', desc: 'Track daily punch-ins', icon: Clock, color: 'from-green-500 to-emerald-400', tab: 'attendance' },
+        { title: 'Leaves', desc: 'Manage leave applications', icon: CalendarDays, color: 'from-orange-500 to-amber-400', tab: 'leaves' },
+        ...(getRoleFromToken() === 'Admin' ? [{ title: 'Salary & Payroll', desc: 'Manage salaries and calculations', icon: IndianRupee, color: 'from-purple-500 to-pink-400', tab: 'salary' }] : []),
+        { title: 'Regularization', desc: 'Fix incomplete punch records', icon: ClipboardList, color: 'from-teal-500 to-cyan-400', tab: 'regularization' }
       ].map((card) => (
         <motion.button
           key={card.tab}
@@ -846,12 +853,531 @@ const OverviewModule = ({ onNavigate }) => (
   </div>
 );
 
+// ─── Attendance Module ────────────────────────────────────────────────────────
+const AttendanceModule = () => {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [todayStatus, setTodayStatus] = useState(null); // { loginTime, logoutTime }
+  const [clockLoading, setClockLoading] = useState(false);
+  const currentUserRole = getRoleFromToken();
+  const [toast, setToast] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterEmail, setFilterEmail] = useState('');
+
+  const [showRegModal, setShowRegModal] = useState(false);
+  const [regForm, setRegForm] = useState({ attendanceId: '', date: '', punchInTime: '', punchOutTime: '', reason: '' });
+  const [regLoading, setRegLoading] = useState(false);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const fetchAttendance = async () => {
+    setLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      if (filterDate) queryParams.append('date', filterDate);
+      if (filterEmail && currentUserRole === 'Admin') queryParams.append('email', filterEmail);
+
+      const res = await fetch(`${config.apiUrl}/attendance?${queryParams.toString()}`, { headers: authHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        setRecords(data.data || []);
+      } else {
+        setError(data.message || 'Failed to fetch attendance.');
+      }
+    } catch {
+      setError('Network error.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkTodayStatus = async () => {
+    try {
+      const res = await fetch(`${config.apiUrl}/attendance/today`, { headers: authHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        setTodayStatus(data.data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    checkTodayStatus();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchAttendance();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [filterDate, filterEmail]);
+
+  const handleClockAction = async (action) => { // 'login' or 'logout'
+    setClockLoading(true);
+    try {
+      const res = await fetch(`${config.apiUrl}/attendance/${action}`, {
+        method: 'POST',
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message);
+        checkTodayStatus();
+        fetchAttendance();
+      } else {
+        setError(data.message || `Failed to punch ${action === 'login' ? 'in' : 'out'}.`);
+      }
+    } catch {
+      setError('Network error.');
+    } finally {
+      setClockLoading(false);
+    }
+  };
+
+  const handleRegularizeSubmit = async (e) => {
+    e.preventDefault();
+    setRegLoading(true);
+    try {
+      const res = await fetch(`${config.apiUrl}/regularization`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(regForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message);
+        setShowRegModal(false);
+        fetchAttendance();
+      } else {
+        setError(data.message || 'Failed to submit request.');
+      }
+    } catch {
+      setError('Network error.');
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-xl text-sm font-semibold shadow-lg">
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Attendance</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Manage daily punch-ins</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          
+          {/* Compact Filter */}
+          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-2 py-1 shadow-sm">
+            <input 
+              type="date" 
+              value={filterDate} 
+              onChange={(e) => setFilterDate(e.target.value)} 
+              className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer w-[110px] p-1" 
+            />
+            {currentUserRole === 'Admin' && (
+              <>
+                <div className="w-px h-4 bg-gray-200 dark:bg-slate-700 mx-1"></div>
+                <input 
+                  type="text" 
+                  placeholder="Email..." 
+                  value={filterEmail} 
+                  onChange={(e) => setFilterEmail(e.target.value)} 
+                  className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none w-24 p-1 placeholder-gray-400" 
+                />
+              </>
+            )}
+            <button 
+              onClick={fetchAttendance} 
+              className="ml-1 p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center"
+              title="Search"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+            {(filterDate || filterEmail) && (
+              <button 
+                onClick={() => { setFilterDate(''); setFilterEmail(''); setTimeout(fetchAttendance, 100); }} 
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+                title="Clear"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <button onClick={fetchAttendance} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+          </button>
+          
+          {currentUserRole !== 'Admin' && (
+             <div className="flex gap-2">
+              {!todayStatus ? (
+                <button onClick={() => handleClockAction('login')} disabled={clockLoading} className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all">
+                  <Clock size={14} /> Punch In
+                </button>
+              ) : !todayStatus.punchOutTime ? (
+                <button onClick={() => handleClockAction('logout')} disabled={clockLoading} className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-red-500 text-white shadow-sm transition-all">
+                  <Clock size={14} /> Punch Out
+                </button>
+              ) : (
+                <span className="px-4 py-1.5 text-xs font-bold rounded-xl bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-400">
+                  Punched Out for Today
+                </span>
+              )}
+             </div>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 flex items-center gap-2 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 text-sm border border-red-200">
+          <AlertCircle size={16} /> {error}
+        </div>
+      )}
+
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-16"><div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+        ) : records.length === 0 ? (
+          <div className="flex flex-col items-center py-16 text-center">
+             <Clock className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />
+             <p className="text-gray-500 font-medium">No attendance records found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">User</th>}
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch In</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch Out</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                {records.map((r) => (
+                  <tr key={r._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
+                    <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{r.date}</td>
+                    {currentUserRole === 'Admin' && <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{r.email}</td>}
+                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                      {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                      {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      {r.status === 'Present' && !r.punchOutTime ? (
+                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                          Incomplete
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          {r.status}
+                        </span>
+                      )}
+                      
+                      {currentUserRole !== 'Admin' && (
+                        <button 
+                          onClick={() => {
+                            setRegForm({
+                              attendanceId: r._id,
+                              date: r.date,
+                              punchInTime: r.punchInTime ? new Date(r.punchInTime).toISOString().slice(0, 16) : '',
+                              punchOutTime: r.punchOutTime ? new Date(r.punchOutTime).toISOString().slice(0, 16) : '',
+                              reason: ''
+                            });
+                            setShowRegModal(true);
+                          }}
+                          className="ml-3 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline"
+                        >
+                          Regularize
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <AnimatePresence>
+        {showRegModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-gray-100 dark:border-slate-800">
+              <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-slate-800">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Regularize Attendance</h3>
+                <button onClick={() => setShowRegModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+              <form onSubmit={handleRegularizeSubmit} className="p-6 space-y-5">
+                <p className="text-sm text-gray-500">Regularizing for date: <strong>{regForm.date}</strong></p>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Actual Punch In Time</label>
+                  <input type="datetime-local" value={regForm.punchInTime} onChange={(e) => setRegForm({...regForm, punchInTime: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Actual Punch Out Time</label>
+                  <input type="datetime-local" value={regForm.punchOutTime} onChange={(e) => setRegForm({...regForm, punchOutTime: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Reason / Justification</label>
+                  <textarea value={regForm.reason} onChange={(e) => setRegForm({...regForm, reason: e.target.value})} rows="3" className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none" placeholder="E.g., Forgot to punch out, system error" required></textarea>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setShowRegModal(false)} className="flex-1 px-4 py-3 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700 rounded-xl transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={regLoading} className="flex-1 px-4 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-70 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    {regLoading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Submit Request'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── Leaves Module ────────────────────────────────────────────────────────
+const LeavesModule = () => {
+  const [leaves, setLeaves] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const currentUserRole = getRoleFromToken();
+  const [toast, setToast] = useState('');
+
+  const [form, setForm] = useState({ type: 'Sick', startDate: '', endDate: '', reason: '' });
+  const [applyLoading, setApplyLoading] = useState(false);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const fetchLeaves = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${config.apiUrl}/leaves`, { headers: authHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        setLeaves(data.data || []);
+      } else {
+        setError(data.message || 'Failed to fetch leaves.');
+      }
+    } catch {
+      setError('Network error.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchLeaves(); }, []);
+
+  const handleApply = async (e) => {
+    e.preventDefault();
+    setApplyLoading(true);
+    try {
+      const res = await fetch(`${config.apiUrl}/leaves`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify(form)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Leave applied successfully.');
+        setShowApplyModal(false);
+        setForm({ type: 'Sick', startDate: '', endDate: '', reason: '' });
+        fetchLeaves();
+      } else {
+        setError(data.message || 'Failed to apply leave.');
+      }
+    } catch {
+      setError('Network error.');
+    } finally {
+      setApplyLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (id, status) => {
+    try {
+      const res = await fetch(`${config.apiUrl}/leaves/${id}/status`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ status })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Leave ${status}.`);
+        fetchLeaves();
+      } else {
+        setError(data.message || 'Failed to update status.');
+      }
+    } catch {
+      setError('Network error.');
+    }
+  };
+
+  return (
+    <div>
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-4 right-4 z-50 bg-green-600 text-white px-5 py-3 rounded-xl text-sm font-semibold shadow-lg">
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Apply Leave Modal */}
+      {showApplyModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Apply for Leave</h3>
+              <button onClick={() => setShowApplyModal(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors"><X size={18} /></button>
+            </div>
+            <form onSubmit={handleApply} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Leave Type</label>
+                <select value={form.type} onChange={(e) => setForm({...form, type: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <option value="Sick">Sick Leave</option>
+                  <option value="Casual">Casual Leave</option>
+                  <option value="Paid">Paid Leave</option>
+                </select>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 font-medium">
+                  Note: You are allotted 2.5 paid leaves per month. Any approved leaves exceeding this quota will be marked as Unpaid (Loss of Pay) and deducted from your salary.
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Start Date</label>
+                  <input type="date" required value={form.startDate} onChange={(e) => setForm({...form, startDate: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">End Date</label>
+                  <input type="date" required value={form.endDate} onChange={(e) => setForm({...form, endDate: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Reason</label>
+                <textarea required rows={3} value={form.reason} onChange={(e) => setForm({...form, reason: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowApplyModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" disabled={applyLoading} className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                  {applyLoading ? 'Submitting...' : 'Submit Leave'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Leave Management</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Track and manage leaves</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={fetchLeaves} className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 transition-colors">
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
+          </button>
+          
+          {currentUserRole !== 'Admin' && (
+            <button onClick={() => setShowApplyModal(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all">
+              <CalendarDays size={15} /> Apply Leave
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 flex items-center gap-2 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 text-sm border border-red-200">
+          <AlertCircle size={16} /> {error}
+        </div>
+      )}
+
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-16"><div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+        ) : leaves.length === 0 ? (
+          <div className="flex flex-col items-center py-16 text-center">
+             <CalendarDays className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />
+             <p className="text-gray-500 font-medium">No leave records found</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
+                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">User</th>}
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Duration</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Reason</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                {leaves.map((l, i) => (
+                  <tr key={l._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
+                    <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{l.type}</td>
+                    {currentUserRole === 'Admin' && <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{l.email}</td>}
+                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{l.startDate} to {l.endDate}</td>
+                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400 truncate max-w-[150px]" title={l.reason}>{l.reason}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold 
+                        ${l.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
+                          l.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {l.status}
+                      </span>
+                    </td>
+                    {currentUserRole === 'Admin' && (
+                      <td className="px-6 py-4 text-right">
+                        {l.status === 'Pending' && (
+                          <div className="flex justify-end gap-2">
+                            <button onClick={() => handleStatusUpdate(l._id, 'Approved')} className="px-3 py-1 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors text-xs font-semibold">Approve</button>
+                            <button onClick={() => handleStatusUpdate(l._id, 'Rejected')} className="px-3 py-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-xs font-semibold">Reject</button>
+                          </div>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 const Dashboard = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+
   const token = localStorage.getItem('adminToken');
   if (!token) return null;
-
-  const [activeTab, setActiveTab] = useState('overview');
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
@@ -860,6 +1386,10 @@ const Dashboard = () => {
 
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'attendance', label: 'Attendance', icon: Clock },
+    { id: 'leaves', label: 'Leaves', icon: CalendarDays },
+    { id: 'regularization', label: 'Regularization', icon: ClipboardList },
+    ...(getRoleFromToken() === 'Admin' ? [{ id: 'salary', label: 'Salary', icon: IndianRupee }] : []),
     { id: 'users', label: 'Users', icon: Users },
     { id: 'contacts', label: 'Messages', icon: MessageSquare },
   ];
@@ -914,7 +1444,10 @@ const Dashboard = () => {
         <header className="mb-8 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
-              {activeTab === 'overview' ? 'Dashboard Overview' : activeTab === 'contacts' ? 'Contact Messages' : 'Users'}
+              {activeTab === 'overview' ? 'Dashboard Overview' : 
+               activeTab === 'attendance' ? 'Attendance' :
+               activeTab === 'leaves' ? 'Leave Management' :
+               activeTab === 'contacts' ? 'Contact Messages' : 'Users'}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Welcome back, Admin!</p>
           </div>
@@ -945,6 +1478,10 @@ const Dashboard = () => {
             transition={{ duration: 0.2 }}
           >
             {activeTab === 'overview' && <OverviewModule onNavigate={setActiveTab} />}
+            {activeTab === 'attendance' && <AttendanceModule />}
+            {activeTab === 'leaves' && <LeavesModule />}
+            {activeTab === 'regularization' && <RegularizationModule />}
+            {activeTab === 'salary' && getRoleFromToken() === 'Admin' && <SalaryModule />}
             {activeTab === 'users' && <UsersModule />}
             {activeTab === 'contacts' && <ContactsModule />}
           </motion.div>
