@@ -12,6 +12,17 @@ const authHeaders = () => ({
   'Content-Type': 'application/json',
   'Authorization': getToken() || '',
 });
+const getRoleFromToken = () => {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const actualToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+    const payload = actualToken.split('.')[1];
+    return JSON.parse(atob(payload)).role;
+  } catch (e) {
+    return null;
+  }
+};
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
@@ -275,6 +286,7 @@ const UsersModule = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const currentUserRole = getRoleFromToken();
   const [editingUser, setEditingUser] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -483,12 +495,14 @@ const UsersModule = () => {
                         >
                           <Pencil size={12} /> Edit
                         </button>
-                        <button
-                          onClick={() => setDeleteConfirm(user)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
-                        >
-                          <Trash2 size={12} /> Delete
-                        </button>
+                        {currentUserRole === 'Admin' && (
+                          <button
+                            onClick={() => setDeleteConfirm(user)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+                          >
+                            <Trash2 size={12} /> Delete
+                          </button>
+                        )}
                       </div>
                     </td>
                   </motion.tr>
