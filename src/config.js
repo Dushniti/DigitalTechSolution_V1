@@ -1,14 +1,7 @@
 // API Configuration
 const getApiUrl = () => {
-  const isProd = import.meta.env.PROD;
-
-  if (isProd) {
-    // Production API URL
-    return 'https://dts-backend-8oqr.onrender.com/api';
-  }
-
-  // In development, use a relative path so Vite's proxy handles it (no CORS)
-  return '/api';
+  // Always use the Render backend (works for both dev and production)
+  return 'https://dts-backend-8oqr.onrender.com/api';
 };
 
 const config = {

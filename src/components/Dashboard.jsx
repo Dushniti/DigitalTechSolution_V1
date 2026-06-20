@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu
 } from 'lucide-react';
 import config from '../config';
 
@@ -26,12 +26,17 @@ const getRoleFromToken = () => {
 
 import PayrollModule from './PayrollModule';
 import RegularizationModule from './RegularizationModule';
+import DashboardOverview from './dashboard/DashboardOverview';
+import OrganizationModule from './OrganizationModule';
+import HRSettingsModule from './HRSettingsModule';
+import DocumentModule from './DocumentModule';
+import ReportsModule from './ReportsModule';
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
   const [email, setEmail] = useState(user.email || '');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState(user.role || 'user');
+  const [role, setRole] = useState(user.role || 'employee');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -117,20 +122,24 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
           {/* Role */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Role</label>
-            <div className="flex gap-3">
-              {['user', 'Admin'].map((r) => (
+            <div className="flex gap-2">
+              {['user', 'employee', 'HR', 'Admin'].map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setRole(r)}
                   className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${role === r
-                      ? r === 'Admin'
-                        ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
-                        : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
-                      : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                    ? r === 'Admin'
+                      ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
+                      : r === 'HR'
+                        ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-200'
+                        : r === 'employee'
+                          ? 'bg-green-600 border-green-600 text-white shadow-sm shadow-green-300'
+                          : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
+                    : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                     }`}
                 >
-                  {r}
+                  {r === 'employee' ? 'Employee' : r === 'user' ? 'User' : r}
                 </button>
               ))}
             </div>
@@ -161,7 +170,7 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
 // ─── Create User Modal ───────────────────────────────────────────────────────────
 const CreateUserModal = ({ onClose, onCreated }) => {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [role, setRole] = useState('user');
+  const [role, setRole] = useState('employee');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -243,20 +252,24 @@ const CreateUserModal = ({ onClose, onCreated }) => {
           {/* Role */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Role</label>
-            <div className="flex gap-3">
-              {['user', 'Admin'].map((r) => (
+            <div className="flex gap-2">
+              {['user', 'employee', 'HR', 'Admin'].map((r) => (
                 <button
                   key={r}
                   type="button"
                   onClick={() => setRole(r)}
                   className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${role === r
-                      ? r === 'Admin'
-                        ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
-                        : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
-                      : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                    ? r === 'Admin'
+                      ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
+                      : r === 'HR'
+                        ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-200'
+                        : r === 'employee'
+                          ? 'bg-green-600 border-green-600 text-white shadow-sm shadow-green-300'
+                          : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
+                    : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                     }`}
                 >
-                  {r}
+                  {r === 'employee' ? 'Employee' : r === 'user' ? 'User' : r}
                 </button>
               ))}
             </div>
@@ -452,6 +465,7 @@ const UsersModule = () => {
                 <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">#</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Employee Profile</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Login</th>
@@ -477,11 +491,25 @@ const UsersModule = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
+                      {user.employeeData ? (
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-gray-200">{user.employeeData.name}</div>
+                          <div className="text-xs text-gray-500">{user.employeeData.employeeCode || 'No Code'}</div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Unlinked</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${user.role === 'Admin'
-                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                        : user.role === 'HR'
+                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                          : user.role === 'employee'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                         }`}>
-                        {user.role || 'user'}
+                        {user.role === 'employee' ? 'Employee' : user.role === 'user' ? 'User' : user.role}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs">
@@ -537,8 +565,8 @@ const ViewMessageModal = ({ contact: c, onClose }) => (
           <div>
             <p className="font-bold text-gray-900 dark:text-white">{c.name}</p>
             <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${c.status === 'new' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
-                  'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
+                'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
               }`}>{c.status || 'new'}</span>
           </div>
         </div>
@@ -674,8 +702,8 @@ const ContactsModule = () => {
                   key={n}
                   onClick={() => handlePerPageChange(n)}
                   className={`px-3 py-1.5 text-xs font-semibold transition-colors ${perPage === n
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
                     }`}
                 >
                   {n}
@@ -729,8 +757,8 @@ const ContactsModule = () => {
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white text-sm">{c.name}</p>
                         <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${c.status === 'new' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                            c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
-                              'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
+                            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                           }`}>{c.status || 'new'}</span>
                       </div>
                     </div>
@@ -796,8 +824,8 @@ const ContactsModule = () => {
                       key={p}
                       onClick={() => goToPage(p)}
                       className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${p === currentPage
-                          ? 'bg-blue-600 text-white shadow-sm shadow-blue-300'
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700'
+                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-300'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700'
                         }`}
                     >
                       {p}
@@ -822,36 +850,7 @@ const ContactsModule = () => {
   );
 };
 
-// ─── Overview Module ─────────────────────────────────────────────────────────
-const OverviewModule = ({ onNavigate }) => (
-  <div>
-    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Overview</h2>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      {[
-        { title: 'Manage Users', desc: 'View, edit or delete admin users', icon: Users, color: 'from-blue-500 to-cyan-400', tab: 'users' },
-        { title: 'Contact Messages', desc: 'View all contact form submissions', icon: MessageSquare, color: 'from-indigo-500 to-blue-400', tab: 'contacts' },
-        { title: 'Attendance', desc: 'Track daily punch-ins', icon: Clock, color: 'from-green-500 to-emerald-400', tab: 'attendance' },
-        { title: 'Leaves', desc: 'Manage leave applications', icon: CalendarDays, color: 'from-orange-500 to-amber-400', tab: 'leaves' },
-        ...(getRoleFromToken() === 'Admin' ? [{ title: 'Payroll Management', desc: 'Generate payroll, slips & reports', icon: IndianRupee, color: 'from-purple-500 to-pink-400', tab: 'salary' }] : []),
-        { title: 'Regularization', desc: 'Fix incomplete punch records', icon: ClipboardList, color: 'from-teal-500 to-cyan-400', tab: 'regularization' }
-      ].map((card) => (
-        <motion.button
-          key={card.tab}
-          onClick={() => onNavigate(card.tab)}
-          whileHover={{ y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          className="text-left bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm p-6 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900 transition-all"
-        >
-          <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center mb-4`}>
-            <card.icon className="w-5 h-5 text-white" />
-          </div>
-          <h3 className="font-bold text-gray-900 dark:text-white mb-1">{card.title}</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{card.desc}</p>
-        </motion.button>
-      ))}
-    </div>
-  </div>
-);
+
 
 // ─── Attendance Module ────────────────────────────────────────────────────────
 const AttendanceModule = () => {
@@ -980,37 +979,37 @@ const AttendanceModule = () => {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Manage daily punch-ins</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          
+
           {/* Compact Filter */}
           <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-2 py-1 shadow-sm">
-            <input 
-              type="date" 
-              value={filterDate} 
-              onChange={(e) => setFilterDate(e.target.value)} 
-              className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer w-[110px] p-1" 
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer w-[110px] p-1"
             />
             {currentUserRole === 'Admin' && (
               <>
                 <div className="w-px h-4 bg-gray-200 dark:bg-slate-700 mx-1"></div>
-                <input 
-                  type="text" 
-                  placeholder="Email..." 
-                  value={filterEmail} 
-                  onChange={(e) => setFilterEmail(e.target.value)} 
-                  className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none w-24 p-1 placeholder-gray-400" 
+                <input
+                  type="text"
+                  placeholder="Email..."
+                  value={filterEmail}
+                  onChange={(e) => setFilterEmail(e.target.value)}
+                  className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none w-24 p-1 placeholder-gray-400"
                 />
               </>
             )}
-            <button 
-              onClick={fetchAttendance} 
+            <button
+              onClick={fetchAttendance}
               className="ml-1 p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center"
               title="Search"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
             </button>
             {(filterDate || filterEmail) && (
-              <button 
-                onClick={() => { setFilterDate(''); setFilterEmail(''); setTimeout(fetchAttendance, 100); }} 
+              <button
+                onClick={() => { setFilterDate(''); setFilterEmail(''); setTimeout(fetchAttendance, 100); }}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
                 title="Clear"
               >
@@ -1022,9 +1021,9 @@ const AttendanceModule = () => {
           <button onClick={fetchAttendance} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
           </button>
-          
+
           {currentUserRole !== 'Admin' && (
-             <div className="flex gap-2">
+            <div className="flex gap-2">
               {!todayStatus ? (
                 <button onClick={() => handleClockAction('login')} disabled={clockLoading} className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all">
                   <Clock size={14} /> Punch In
@@ -1038,7 +1037,7 @@ const AttendanceModule = () => {
                   Punched Out for Today
                 </span>
               )}
-             </div>
+            </div>
           )}
         </div>
       </div>
@@ -1054,8 +1053,8 @@ const AttendanceModule = () => {
           <div className="flex justify-center py-16"><div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
         ) : records.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-center">
-             <Clock className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />
-             <p className="text-gray-500 font-medium">No attendance records found</p>
+            <Clock className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />
+            <p className="text-gray-500 font-medium">No attendance records found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -1075,10 +1074,10 @@ const AttendanceModule = () => {
                     <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{r.date}</td>
                     {currentUserRole === 'Admin' && <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{r.email}</td>}
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                      {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '—'}
+                      {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                     </td>
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                      {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '—'}
+                      {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                     </td>
                     <td className="px-6 py-4">
                       {r.status === 'Present' && !r.punchOutTime ? (
@@ -1090,9 +1089,9 @@ const AttendanceModule = () => {
                           {r.status}
                         </span>
                       )}
-                      
+
                       {currentUserRole !== 'Admin' && (
-                        <button 
+                        <button
                           onClick={() => {
                             setRegForm({
                               attendanceId: r._id,
@@ -1130,15 +1129,15 @@ const AttendanceModule = () => {
                 <p className="text-sm text-gray-500">Regularizing for date: <strong>{regForm.date}</strong></p>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Actual Punch In Time</label>
-                  <input type="datetime-local" value={regForm.punchInTime} onChange={(e) => setRegForm({...regForm, punchInTime: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" required />
+                  <input type="datetime-local" value={regForm.punchInTime} onChange={(e) => setRegForm({ ...regForm, punchInTime: e.target.value })} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" required />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Actual Punch Out Time</label>
-                  <input type="datetime-local" value={regForm.punchOutTime} onChange={(e) => setRegForm({...regForm, punchOutTime: e.target.value})} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" required />
+                  <input type="datetime-local" value={regForm.punchOutTime} onChange={(e) => setRegForm({ ...regForm, punchOutTime: e.target.value })} className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" required />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Reason / Justification</label>
-                  <textarea value={regForm.reason} onChange={(e) => setRegForm({...regForm, reason: e.target.value})} rows="3" className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none" placeholder="E.g., Forgot to punch out, system error" required></textarea>
+                  <textarea value={regForm.reason} onChange={(e) => setRegForm({ ...regForm, reason: e.target.value })} rows="3" className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none" placeholder="E.g., Forgot to punch out, system error" required></textarea>
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={() => setShowRegModal(false)} className="flex-1 px-4 py-3 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700 rounded-xl transition-colors">
@@ -1258,7 +1257,7 @@ const LeavesModule = () => {
             <form onSubmit={handleApply} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Leave Type</label>
-                <select value={form.type} onChange={(e) => setForm({...form, type: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                   <option value="Sick">Sick Leave</option>
                   <option value="Casual">Casual Leave</option>
                   <option value="Paid">Paid Leave</option>
@@ -1270,16 +1269,16 @@ const LeavesModule = () => {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Start Date</label>
-                  <input type="date" required value={form.startDate} onChange={(e) => setForm({...form, startDate: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <input type="date" required value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                 </div>
                 <div className="flex-1">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">End Date</label>
-                  <input type="date" required value={form.endDate} onChange={(e) => setForm({...form, endDate: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <input type="date" required value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Reason</label>
-                <textarea required rows={3} value={form.reason} onChange={(e) => setForm({...form, reason: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                <textarea required rows={3} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowApplyModal(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 transition-colors">Cancel</button>
@@ -1301,7 +1300,7 @@ const LeavesModule = () => {
           <button onClick={fetchLeaves} className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 transition-colors">
             <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
           </button>
-          
+
           {currentUserRole !== 'Admin' && (
             <button onClick={() => setShowApplyModal(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all">
               <CalendarDays size={15} /> Apply Leave
@@ -1321,8 +1320,8 @@ const LeavesModule = () => {
           <div className="flex justify-center py-16"><div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
         ) : leaves.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-center">
-             <CalendarDays className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />
-             <p className="text-gray-500 font-medium">No leave records found</p>
+            <CalendarDays className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />
+            <p className="text-gray-500 font-medium">No leave records found</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -1346,7 +1345,7 @@ const LeavesModule = () => {
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400 truncate max-w-[150px]" title={l.reason}>{l.reason}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold 
-                        ${l.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 
+                        ${l.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
                           l.status === 'Approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                         {l.status}
                       </span>
@@ -1374,7 +1373,28 @@ const LeavesModule = () => {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
+    if (hash.startsWith('dashboard/')) {
+      return hash.split('/')[1] || 'overview';
+    }
+    return 'overview';
+  });
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
+      if (hash === 'dashboard') {
+        setActiveTab('overview');
+      } else if (hash.startsWith('dashboard/')) {
+        const tab = hash.split('/')[1];
+        if (tab) setActiveTab(tab);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const token = localStorage.getItem('adminToken');
   if (!token) return null;
@@ -1384,20 +1404,33 @@ const Dashboard = () => {
     window.location.hash = '';
   };
 
+  const role = getRoleFromToken();
   const navItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    ...(role !== 'employee' ? [{ id: 'overview', label: 'Dashboard', icon: LayoutDashboard }] : []),
     { id: 'attendance', label: 'Attendance', icon: Clock },
     { id: 'leaves', label: 'Leaves', icon: CalendarDays },
     { id: 'regularization', label: 'Regularization', icon: ClipboardList },
-    ...(getRoleFromToken() === 'Admin' ? [{ id: 'salary', label: 'Payroll', icon: IndianRupee }] : []),
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'contacts', label: 'Messages', icon: MessageSquare },
+    ...(role === 'Admin' || role === 'HR' ? [{ id: 'salary', label: 'Payroll', icon: IndianRupee }] : []),
+    ...(role === 'Admin' ? [{ id: 'users', label: 'Auth Users', icon: Users }] : []),
+    ...(role === 'Admin' || role === 'HR' ? [{ id: 'organization', label: 'Org & Staff', icon: Building }] : []),
+    ...(role === 'Admin' || role === 'HR' ? [{ id: 'hr-settings', label: 'HR Settings', icon: Settings }] : []),
+    { id: 'documents', label: 'Documents', icon: FileText },
+    ...(role === 'Admin' || role === 'HR' ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
+    ...(role !== 'employee' ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row relative overflow-hidden md:overflow-visible">
+      {/* ── Mobile Sidebar Overlay ── */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* ── Sidebar ── */}
-      <aside className="w-full md:w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-sm shrink-0">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 shrink-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-200 dark:border-slate-800">
           <a
             href="#home"
@@ -1423,10 +1456,13 @@ const Dashboard = () => {
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id)}
+              onClick={() => {
+                window.location.hash = `dashboard/${id === 'overview' ? '' : id}`;
+                setIsMobileMenuOpen(false);
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === id
-                  ? 'bg-blue-50 dark:bg-blue-900/25 text-blue-600 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                ? 'bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/30 dark:to-transparent text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 shadow-sm'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 border-l-4 border-transparent'
                 }`}
             >
               <Icon size={17} />
@@ -1440,20 +1476,35 @@ const Dashboard = () => {
       </aside>
 
       {/* ── Main Content ── */}
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto min-h-screen">
-        <header className="mb-8 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
-              {activeTab === 'overview'        ? 'Dashboard Overview' :
-               activeTab === 'attendance'      ? 'Attendance' :
-               activeTab === 'leaves'          ? 'Leave Management' :
-               activeTab === 'contacts'        ? 'Contact Messages' :
-               activeTab === 'salary'          ? 'Payroll Management' :
-               activeTab === 'regularization'  ? 'Regularization' : 'Users'}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Welcome back, Admin!</p>
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen md:min-h-screen">
+        <header className="mb-6 md:mb-8 flex items-center justify-between gap-4 sticky top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md z-30 pb-2 pt-2 -mx-4 px-4 md:mx-0 md:px-0 md:static md:bg-transparent">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-2 -ml-2 rounded-xl text-gray-600 hover:bg-white hover:shadow-sm dark:text-gray-300 dark:hover:bg-slate-800 transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+            >
+              <Menu size={22} />
+            </button>
+            <div className="md:hidden flex items-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center mr-2">
+                <span className="text-white font-bold text-sm">DT</span>
+              </div>
+              <span className="font-bold text-gray-900 dark:text-white">DTS</span>
+            </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {/* Notification Bell */}
+            <div className="relative group">
+              <button className="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 transition-all">
+                <Bell size={18} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-800"></span>
+              </button>
+              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-800 p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">Notifications</h3>
+                <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No new notifications</div>
+              </div>
+            </div>
+
             <button
               onClick={() => { sessionStorage.removeItem('_dashRedirected'); window.location.hash = 'home'; }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm transition-all"
@@ -1479,12 +1530,16 @@ const Dashboard = () => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === 'overview' && <OverviewModule onNavigate={setActiveTab} />}
+            {activeTab === 'overview' && <DashboardOverview onNavigate={(id) => { window.location.hash = `dashboard/${id === 'overview' ? '' : id}`; }} />}
             {activeTab === 'attendance' && <AttendanceModule />}
             {activeTab === 'leaves' && <LeavesModule />}
             {activeTab === 'regularization' && <RegularizationModule />}
-            {activeTab === 'salary' && getRoleFromToken() === 'Admin' && <PayrollModule />}
-            {activeTab === 'users' && <UsersModule />}
+            {activeTab === 'salary' && (role === 'Admin' || role === 'HR') && <PayrollModule />}
+            {activeTab === 'users' && role === 'Admin' && <UsersModule />}
+            {activeTab === 'organization' && (role === 'Admin' || role === 'HR') && <OrganizationModule />}
+            {activeTab === 'hr-settings' && (role === 'Admin' || role === 'HR') && <HRSettingsModule />}
+            {activeTab === 'documents' && <DocumentModule />}
+            {activeTab === 'reports' && (role === 'Admin' || role === 'HR') && <ReportsModule />}
             {activeTab === 'contacts' && <ContactsModule />}
           </motion.div>
         </AnimatePresence>
