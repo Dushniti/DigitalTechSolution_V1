@@ -24,7 +24,7 @@ const getRoleFromToken = () => {
   }
 };
 
-import SalaryModule from './SalaryModule';
+import PayrollModule from './PayrollModule';
 import RegularizationModule from './RegularizationModule';
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
@@ -832,7 +832,7 @@ const OverviewModule = ({ onNavigate }) => (
         { title: 'Contact Messages', desc: 'View all contact form submissions', icon: MessageSquare, color: 'from-indigo-500 to-blue-400', tab: 'contacts' },
         { title: 'Attendance', desc: 'Track daily punch-ins', icon: Clock, color: 'from-green-500 to-emerald-400', tab: 'attendance' },
         { title: 'Leaves', desc: 'Manage leave applications', icon: CalendarDays, color: 'from-orange-500 to-amber-400', tab: 'leaves' },
-        ...(getRoleFromToken() === 'Admin' ? [{ title: 'Salary & Payroll', desc: 'Manage salaries and calculations', icon: IndianRupee, color: 'from-purple-500 to-pink-400', tab: 'salary' }] : []),
+        ...(getRoleFromToken() === 'Admin' ? [{ title: 'Payroll Management', desc: 'Generate payroll, slips & reports', icon: IndianRupee, color: 'from-purple-500 to-pink-400', tab: 'salary' }] : []),
         { title: 'Regularization', desc: 'Fix incomplete punch records', icon: ClipboardList, color: 'from-teal-500 to-cyan-400', tab: 'regularization' }
       ].map((card) => (
         <motion.button
@@ -1389,7 +1389,7 @@ const Dashboard = () => {
     { id: 'attendance', label: 'Attendance', icon: Clock },
     { id: 'leaves', label: 'Leaves', icon: CalendarDays },
     { id: 'regularization', label: 'Regularization', icon: ClipboardList },
-    ...(getRoleFromToken() === 'Admin' ? [{ id: 'salary', label: 'Salary', icon: IndianRupee }] : []),
+    ...(getRoleFromToken() === 'Admin' ? [{ id: 'salary', label: 'Payroll', icon: IndianRupee }] : []),
     { id: 'users', label: 'Users', icon: Users },
     { id: 'contacts', label: 'Messages', icon: MessageSquare },
   ];
@@ -1444,10 +1444,12 @@ const Dashboard = () => {
         <header className="mb-8 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">
-              {activeTab === 'overview' ? 'Dashboard Overview' : 
-               activeTab === 'attendance' ? 'Attendance' :
-               activeTab === 'leaves' ? 'Leave Management' :
-               activeTab === 'contacts' ? 'Contact Messages' : 'Users'}
+              {activeTab === 'overview'        ? 'Dashboard Overview' :
+               activeTab === 'attendance'      ? 'Attendance' :
+               activeTab === 'leaves'          ? 'Leave Management' :
+               activeTab === 'contacts'        ? 'Contact Messages' :
+               activeTab === 'salary'          ? 'Payroll Management' :
+               activeTab === 'regularization'  ? 'Regularization' : 'Users'}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Welcome back, Admin!</p>
           </div>
@@ -1481,7 +1483,7 @@ const Dashboard = () => {
             {activeTab === 'attendance' && <AttendanceModule />}
             {activeTab === 'leaves' && <LeavesModule />}
             {activeTab === 'regularization' && <RegularizationModule />}
-            {activeTab === 'salary' && getRoleFromToken() === 'Admin' && <SalaryModule />}
+            {activeTab === 'salary' && getRoleFromToken() === 'Admin' && <PayrollModule />}
             {activeTab === 'users' && <UsersModule />}
             {activeTab === 'contacts' && <ContactsModule />}
           </motion.div>
