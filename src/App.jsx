@@ -82,35 +82,35 @@ function App() {
     AOS.refresh();
   }, [currentRoute]);
 
-  const isPrivacyPage     = currentRoute === 'privacy-policy';
-  const isTermsPage       = currentRoute === 'terms-of-service';
-  const isCareerPage      = currentRoute === 'career';
-  const isOurTeamPage     = currentRoute === 'our-team';
-  const isPricingPage     = currentRoute === 'pricing';
-  const isDashboard       = currentRoute === 'dashboard';
-  const isStandalonePage  = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage || isDashboard;
+  const isPrivacyPage = currentRoute === 'privacy-policy';
+  const isTermsPage = currentRoute === 'terms-of-service';
+  const isCareerPage = currentRoute === 'career';
+  const isOurTeamPage = currentRoute === 'our-team';
+  const isPricingPage = currentRoute === 'pricing';
+  const isDashboard = currentRoute.startsWith('dashboard');
+  const isStandalonePage = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage || isDashboard;
 
   // ── Per-route SEO ──────────────────────────────────────────────────────
   const seoMap = {
     'privacy-policy': {
-      title:       'Privacy Policy',
+      title: 'Privacy Policy',
       description: 'Read the DigitalTechSolution privacy policy to understand how we collect, use and protect your personal data.',
-      path:        '/privacy-policy',
+      path: '/privacy-policy',
     },
     'terms-of-service': {
-      title:       'Terms of Service',
+      title: 'Terms of Service',
       description: 'Review the terms and conditions governing the use of DigitalTechSolution services and our website.',
-      path:        '/terms-of-service',
+      path: '/terms-of-service',
     },
     career: {
-      title:       'Careers',
+      title: 'Careers',
       description: 'Join the DigitalTechSolution team. Explore open roles in web development, app development, and digital marketing.',
-      path:        '/career',
+      path: '/career',
     },
     'our-team': {
-      title:       'Our Team',
+      title: 'Our Team',
       description: 'Meet the passionate designers, developers, and strategists behind DigitalTechSolution.',
-      path:        '/our-team',
+      path: '/our-team',
     },
     pricing: {
       title: 'Pricing',
@@ -123,13 +123,13 @@ function App() {
       path: '/dashboard',
     },
     default: {
-      title:       'Professional Web, App & Software Development',
+      title: 'Professional Web, App & Software Development',
       description: 'DigitalTechSolution builds fast, SEO-ready websites, mobile apps, and custom software that grow your business. Get a free consultation today.',
-      path:        '/',
+      path: '/',
     },
   };
 
-  const currentSEO = seoMap[currentRoute] ?? seoMap.default;
+  const currentSEO = isDashboard ? seoMap.dashboard : (seoMap[currentRoute] ?? seoMap.default);
   useSEO(currentSEO);
 
   const isHomePage = currentRoute === 'home';
