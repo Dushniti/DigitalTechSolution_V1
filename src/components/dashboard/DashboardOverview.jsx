@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, RefreshCw, Clock, CalendarDays, ClipboardList, IndianRupee, Users, Building, Settings, FileText, BarChart2, MessageSquare, ChevronRight } from 'lucide-react';
+import { AlertCircle, RefreshCw, Clock, CalendarDays, ClipboardList, IndianRupee, Users, Building, Settings, FileText, BarChart2, MessageSquare, ChevronRight, Briefcase } from 'lucide-react';
 import config from '../../config';
 
 import EmployeeDashboard from './EmployeeDashboard';
@@ -74,6 +74,7 @@ const DashboardOverview = ({ onNavigate }) => {
       modules.push({ id: 'salary', label: 'Payroll', icon: IndianRupee, gradient: 'from-emerald-600 to-green-500' });
       modules.push({ id: 'organization', label: 'Org & Staff', icon: Building, gradient: 'from-indigo-500 to-blue-500' });
       modules.push({ id: 'hr-settings', label: 'HR Settings', icon: Settings, gradient: 'from-slate-600 to-slate-500' });
+      modules.push({ id: 'master', label: 'Job Master', icon: Briefcase, gradient: 'from-amber-600 to-yellow-500' });
       modules.push({ id: 'reports', label: 'Reports', icon: BarChart2, gradient: 'from-rose-500 to-pink-500' });
     }
     if (role === 'admin' || role === 'super_admin') {

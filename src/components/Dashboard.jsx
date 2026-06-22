@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase
 } from 'lucide-react';
 import config from '../config';
 
@@ -31,6 +31,7 @@ import OrganizationModule from './OrganizationModule';
 import HRSettingsModule from './HRSettingsModule';
 import DocumentModule from './DocumentModule';
 import ReportsModule from './ReportsModule';
+import MasterModule from './MasterModule';
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
@@ -1414,6 +1415,7 @@ const Dashboard = () => {
     ...(role === 'Admin' ? [{ id: 'users', label: 'Auth Users', icon: Users }] : []),
     ...(role === 'Admin' || role === 'HR' ? [{ id: 'organization', label: 'Org & Staff', icon: Building }] : []),
     ...(role === 'Admin' || role === 'HR' ? [{ id: 'hr-settings', label: 'HR Settings', icon: Settings }] : []),
+    ...(role === 'Admin' || role === 'HR' ? [{ id: 'master', label: 'Job Master', icon: Briefcase }] : []),
     { id: 'documents', label: 'Documents', icon: FileText },
     ...(role === 'Admin' || role === 'HR' ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
     ...(role !== 'employee' ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
@@ -1538,6 +1540,7 @@ const Dashboard = () => {
             {activeTab === 'users' && role === 'Admin' && <UsersModule />}
             {activeTab === 'organization' && (role === 'Admin' || role === 'HR') && <OrganizationModule />}
             {activeTab === 'hr-settings' && (role === 'Admin' || role === 'HR') && <HRSettingsModule />}
+            {activeTab === 'master' && (role === 'Admin' || role === 'HR') && <MasterModule />}
             {activeTab === 'documents' && <DocumentModule />}
             {activeTab === 'reports' && (role === 'Admin' || role === 'HR') && <ReportsModule />}
             {activeTab === 'contacts' && <ContactsModule />}
