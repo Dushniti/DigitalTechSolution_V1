@@ -17,6 +17,21 @@ const DashboardOverview = ({ onNavigate }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showAllModules, setShowAllModules] = useState(false);
+  const [columns, setColumns] = useState(6);
+
+  useEffect(() => {
+    const updateColumns = () => {
+      if (window.innerWidth >= 1280) setColumns(6);
+      else if (window.innerWidth >= 1024) setColumns(5);
+      else if (window.innerWidth >= 768) setColumns(4);
+      else if (window.innerWidth >= 640) setColumns(3);
+      else setColumns(2);
+    };
+    updateColumns();
+    window.addEventListener('resize', updateColumns);
+    return () => window.removeEventListener('resize', updateColumns);
+  }, []);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -84,11 +99,24 @@ const DashboardOverview = ({ onNavigate }) => {
       modules.push({ id: 'contacts', label: 'Messages', icon: MessageSquare, gradient: 'from-violet-500 to-purple-400' });
     }
 
+    const hasMore = modules.length > columns;
+    const visibleModules = showAllModules ? modules : modules.slice(0, hasMore ? columns - 1 : columns);
+
     return (
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Access Modules</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Quick Access Modules</h2>
+          {showAllModules && (
+            <button
+              onClick={() => setShowAllModules(false)}
+              className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+            >
+              Show Less
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {modules.map((m) => {
+          {visibleModules.map((m) => {
             const Icon = m.icon;
             return (
               <button
@@ -106,6 +134,19 @@ const DashboardOverview = ({ onNavigate }) => {
               </button>
             );
           })}
+          {!showAllModules && hasMore && (
+            <button
+              onClick={() => setShowAllModules(true)}
+              className="group flex flex-col items-center justify-center p-5 bg-blue-50/50 dark:bg-slate-800/50 rounded-2xl border border-blue-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 relative overflow-hidden text-center"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                <span className="font-bold text-lg">+{modules.length - (columns - 1)}</span>
+              </div>
+              <span className="text-sm font-bold text-blue-700 dark:text-blue-400 leading-tight">
+                Show More
+              </span>
+            </button>
+          )}
         </div>
       </div>
     );

@@ -1375,6 +1375,7 @@ const LeavesModule = () => {
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
     if (hash.startsWith('dashboard/')) {
@@ -1432,8 +1433,8 @@ const Dashboard = () => {
       )}
 
       {/* ── Sidebar ── */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 shrink-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-5 border-b border-gray-200 dark:border-slate-800">
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm transform transition-all duration-300 ease-in-out md:relative shrink-0 ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'} ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}`}>
+        <div className={`p-5 border-b border-gray-200 dark:border-slate-800 flex items-center ${isSidebarCollapsed ? 'md:justify-center md:px-0' : ''}`}>
           <a
             href="#home"
             className="flex items-center gap-2.5"
@@ -1445,8 +1446,8 @@ const Dashboard = () => {
               referrerPolicy="no-referrer"
               onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }}
             />
-            <div>
-              <p className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent leading-tight">
+            <div className={`${isSidebarCollapsed ? 'md:hidden' : 'block'}`}>
+              <p className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent leading-tight truncate">
                 DigitalTechSolution
               </p>
               <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">Management Dashboard</p>
@@ -1454,7 +1455,7 @@ const Dashboard = () => {
           </a>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto overflow-x-hidden">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -1462,15 +1463,18 @@ const Dashboard = () => {
                 window.location.hash = `dashboard/${id === 'overview' ? '' : id}`;
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === id
-                ? 'bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/30 dark:to-transparent text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 border-l-4 border-transparent'
+              title={label}
+              className={`group w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isSidebarCollapsed ? 'md:w-12 md:px-0 md:justify-center md:mx-auto' : ''
+              } ${activeTab === id
+                ? `bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/30 dark:to-transparent text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 shadow-sm ${isSidebarCollapsed ? 'md:border-l-0 md:from-blue-100 md:to-blue-100 dark:md:from-blue-900/50 dark:md:to-blue-900/50' : ''}`
+                : `text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 border-l-4 border-transparent ${isSidebarCollapsed ? 'md:border-l-0' : ''}`
                 }`}
             >
-              <Icon size={17} />
-              {label}
+              <Icon size={19} className={`shrink-0 ${activeTab === id && isSidebarCollapsed ? 'md:text-blue-600 dark:md:text-blue-400' : ''}`} />
+              <span className={`${isSidebarCollapsed ? 'md:hidden' : 'block'} whitespace-nowrap`}>{label}</span>
               {activeTab === id && (
-                <motion.span layoutId="sidebar-active" className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <motion.span layoutId="sidebar-active" className={`ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 ${isSidebarCollapsed ? 'md:hidden' : 'block'}`} />
               )}
             </button>
           ))}
@@ -1484,6 +1488,13 @@ const Dashboard = () => {
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="md:hidden p-2 -ml-2 rounded-xl text-gray-600 hover:bg-white hover:shadow-sm dark:text-gray-300 dark:hover:bg-slate-800 transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+            >
+              <Menu size={22} />
+            </button>
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="hidden md:flex p-2 -ml-2 rounded-xl text-gray-600 hover:bg-white hover:shadow-sm dark:text-gray-300 dark:hover:bg-slate-800 transition-all border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
+              title="Toggle Sidebar"
             >
               <Menu size={22} />
             </button>
