@@ -12,14 +12,18 @@ A modern, fully responsive company portfolio website built with React 18, Vite, 
 - 🎭 **Framer Motion Animations** — `whileInView`, `whileHover`, `AnimatePresence`, and layout animations throughout
 - 🎯 **SEO Optimised** — Dynamic meta tags via custom `useSEO` hook, `sitemap.xml`, and `robots.txt`
 - 🔧 **Modular Components** — Fully self-contained, reusable React components
+- 🔒 **Authentication System** — Secure JWT-based login with role-based access control (Admin, Employee, HR)
+- 📊 **Admin & Employee Dashboard** — Comprehensive dashboard with HR, organization, and settings management
+- 💼 **HR & Payroll Modules** — Complete leave, salary, regularization, and payroll management systems
+- 📁 **Document Management** — File upload capabilities, user-specific retrieval, and secure deletion
 - 📧 **Three Contact Forms** — General enquiry, Start a Project, and Schedule a Call — all with SMTP email integration and auto-reply
 - ✅ **Form Validation** — Client-side validation with clear error messaging
 - 🌊 **Animated Tech Background** — Canvas-based particle background (TechBackground)
 - 💬 **Floating Buttons** — WhatsApp and Call floating action buttons
 - 🛡️ **Legal Pages** — Privacy Policy and Terms of Service
 - 👥 **Team Page** — Dedicated `/our-team` route with animated member cards
-- 💼 **Careers Page** — Dedicated `/career` route
-- 🔢 **Portal Modals** — Contact modals rendered via `createPortal` to correctly layer above all content
+- 💼 **Careers Page** — Dedicated `/career` route with job portal backend integration
+- 🔢 **Portal Modals** — Contact and login modals rendered via `createPortal` to correctly layer above all content
 
 ---
 
@@ -35,6 +39,7 @@ A modern, fully responsive company portfolio website built with React 18, Vite, 
 | `#contact` | `Contact.jsx` | Contact form + info cards + business hours + project/schedule modals |
 | `/our-team` | `OurTeam.jsx` | Team member cards with avatar, bio, and social links |
 | `/career` | `Career.jsx` | Open positions and application info |
+| `/dashboard` | `Dashboard.jsx` | Comprehensive dashboard with sub-modules (HR, Payroll, Documents, etc.) |
 | `#/privacy-policy` | `PrivacyPolicy.jsx` | Privacy Policy page |
 | `#/terms-of-service` | `TermsOfService.jsx` | Terms of Service page |
 | — | `Footer.jsx` | Links, contact info, newsletter signup, bottom bar |
@@ -54,7 +59,10 @@ A modern, fully responsive company portfolio website built with React 18, Vite, 
 
 ### Backend (`/server`)
 - **Node.js + Express** — REST API server
-- **Nodemailer** — SMTP email sending (Gmail App Password)
+- **MongoDB & Mongoose** — Database for users, jobs, documents, leave, and salary records
+- **JWT & bcryptjs** — Authentication and secure password hashing
+- **Multer** — Middleware for handling multipart/form-data (file uploads)
+- **Nodemailer / Resend** — SMTP email sending and email API integration
 - **CORS** — Configured for local and production origins
 
 ---
@@ -150,7 +158,10 @@ digitaltechsolution/
 │   │   ├── TermsOfService.jsx
 │   │   ├── TechBackground.jsx
 │   │   ├── WhatsAppFloat.jsx
-│   │   └── CallFloat.jsx
+│   │   ├── CallFloat.jsx
+│   │   ├── LoginModal.jsx
+│   │   ├── Dashboard.jsx
+│   │   └── [Dashboard Modules...]
 │   ├── hooks/
 │   │   └── useSEO.js
 │   ├── assets/
@@ -168,6 +179,7 @@ digitaltechsolution/
 ├── vite.config.js
 ├── eslint.config.js
 ├── package.json
+├── vercel.json
 └── README.md
 ```
 
@@ -217,10 +229,15 @@ Update in the following files:
 - [x] Careers page
 - [x] Legal pages (Privacy Policy, Terms of Service)
 - [x] Portal-based modals (no stacking context issues)
+- [x] Role-based Authentication & Login Modal
+- [x] Admin & Employee Dashboard implementation
+- [x] HR, Payroll, Leave, and Salary Management
+- [x] Document Management with file uploads
+- [x] Career Portal backend integration (Job Management)
 - [ ] Blog / Articles section
 - [ ] Testimonials section
 - [ ] Dark mode toggle
-- [ ] Analytics integration
+- [x] Analytics integration (Dashboard role-based reporting)
 
 ---
 
