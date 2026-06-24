@@ -60,6 +60,37 @@ const Navbar = ({ theme, toggleTheme }) => {
     };
   }, []);
 
+  // Handle /login URL for opening the modal automatically
+  useEffect(() => {
+    const handleUrlLogin = () => {
+      const isLoginRoute = window.location.pathname === '/login' || window.location.hash === '#login' || window.location.hash === '#/login';
+      
+      if (isLoginRoute) {
+        if (localStorage.getItem('adminToken')) {
+          // If already logged in, redirect to dashboard
+          if (window.location.pathname === '/login') {
+            window.history.pushState({}, '', '/');
+          }
+          window.location.hash = 'dashboard';
+        } else {
+          // Not logged in, open modal
+          setIsLoginModalOpen(true);
+        }
+      } else if (!window.location.pathname.includes('/login') && !window.location.hash.includes('login')) {
+        // Only close if we are truly navigating away, though usually user closes modal manually
+        setIsLoginModalOpen(false);
+      }
+    };
+
+    handleUrlLogin();
+    window.addEventListener('popstate', handleUrlLogin);
+    window.addEventListener('hashchange', handleUrlLogin);
+    return () => {
+      window.removeEventListener('popstate', handleUrlLogin);
+      window.removeEventListener('hashchange', handleUrlLogin);
+    };
+  }, []);
+
   // Close profile dropdown when clicking outside
   useEffect(() => {
     const handler = (e) => {
@@ -222,7 +253,11 @@ const Navbar = ({ theme, toggleTheme }) => {
               ) : (
                 <button
                   type="button"
-                  onClick={() => setIsLoginModalOpen(true)}
+                  onClick={() => {
+                    setIsLoginModalOpen(true);
+                    window.history.pushState({}, '', '/login');
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                  }}
                   className="hidden lg:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 transition-all duration-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                 >
                   <LogIn size={16} />
@@ -367,6 +402,8 @@ const Navbar = ({ theme, toggleTheme }) => {
                     onClick={() => {
                       setIsOpen(false);
                       setIsLoginModalOpen(true);
+                      window.history.pushState({}, '', '/login');
+                      window.dispatchEvent(new PopStateEvent('popstate'));
                     }}
                     className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                   >
@@ -394,7 +431,13 @@ const Navbar = ({ theme, toggleTheme }) => {
       {/* Login Modal */}
       <LoginModal
         isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
+        onClose={() => {
+          setIsLoginModalOpen(false);
+          if (window.location.pathname === '/login' || window.location.hash === '#login' || window.location.hash === '#/login') {
+            window.history.pushState({}, '', '/');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+          }
+        }}
       />
     </>
   );
