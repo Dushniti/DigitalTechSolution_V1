@@ -17,6 +17,10 @@ import OurTeam from './components/OurTeam';
 import Pricing from './components/Pricing';
 import Dashboard from './components/Dashboard';
 
+import PublicRegistration from './pages/PublicRegistration';
+import ClientPortalLogin from './pages/ClientPortalLogin';
+import ClientPortalDashboard from './pages/ClientPortalDashboard';
+
 const getCurrentRoute = () => {
   const hashRoute = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
 
@@ -88,7 +92,10 @@ function App() {
   const isOurTeamPage = currentRoute === 'our-team';
   const isPricingPage = currentRoute === 'pricing';
   const isDashboard = currentRoute.startsWith('dashboard');
-  const isStandalonePage = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage || isDashboard;
+  const isRegisterPage = currentRoute === 'register';
+  const isClientPortalLogin = currentRoute === 'client-portal';
+  const isClientPortalDashboard = currentRoute.startsWith('client-portal/dashboard');
+  const isStandalonePage = isPrivacyPage || isTermsPage || isCareerPage || isOurTeamPage || isDashboard || isRegisterPage || isClientPortalLogin || isClientPortalDashboard;
 
   // ── Per-route SEO ──────────────────────────────────────────────────────
   const seoMap = {
@@ -164,6 +171,18 @@ function App() {
       return <Dashboard />;
     }
 
+    if (isRegisterPage) {
+      return <PublicRegistration />;
+    }
+
+    if (isClientPortalLogin) {
+      return <ClientPortalLogin />;
+    }
+
+    if (isClientPortalDashboard) {
+      return <ClientPortalDashboard />;
+    }
+
     // Both '' and 'home' render the main home page
     return (
       <>
@@ -178,9 +197,9 @@ function App() {
 
   return (
     <div className="App">
-      {!isDashboard && <Navbar theme={theme} toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />}
+      {!isDashboard && !isRegisterPage && !isClientPortalLogin && !isClientPortalDashboard && <Navbar theme={theme} toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />}
       <main>{renderPageContent()}</main>
-      {!isDashboard && <Footer />}
+      {!isDashboard && !isRegisterPage && !isClientPortalLogin && !isClientPortalDashboard && <Footer />}
       {!isStandalonePage && <WhatsAppFloat />}
       {!isStandalonePage && <CallFloat />}
     </div>

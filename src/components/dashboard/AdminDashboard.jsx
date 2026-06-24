@@ -1,7 +1,7 @@
 import React from 'react';
 import HRDashboard from './HRDashboard';
 import StatCard from './widgets/StatCard';
-import { IndianRupee, CheckCircle2, Clock } from 'lucide-react';
+import { IndianRupee, CheckCircle2, Clock, Activity, Building2, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const AdminDashboard = ({ data, loading, onNavigate }) => {
@@ -9,6 +9,19 @@ const AdminDashboard = ({ data, loading, onNavigate }) => {
 
   return (
     <div className="space-y-8">
+      {/* SaaS Metrics (Super Admin Only) */}
+      {data?.saasMetrics && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">SaaS Platform Overview</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <StatCard title="Total Companies" value={data.saasMetrics.totalCompanies} icon={Building2} gradient="from-blue-600 to-blue-500" />
+            <StatCard title="Active Subscriptions" value={data.saasMetrics.activeSubscriptions} icon={CheckCircle2} gradient="from-emerald-500 to-green-500" />
+            <StatCard title="Total Platform Users" value={data.saasMetrics.totalUsers} icon={Users} gradient="from-purple-500 to-pink-500" />
+            <StatCard title="Monthly Revenue" value={`₹${data.saasMetrics.monthlyRevenue.toLocaleString()}`} icon={IndianRupee} gradient="from-amber-500 to-orange-500" />
+          </div>
+        </div>
+      )}
+
       {/* Admin specific Payroll Analytics */}
       <div>
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Payroll Analytics (This Month)</h2>
@@ -39,6 +52,37 @@ const AdminDashboard = ({ data, loading, onNavigate }) => {
            </div>
         </div>
       </div>
+
+      {/* Recent Activities */}
+      {data?.recentActivities && (
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activities</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            {data.recentActivities.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">No recent activities found</div>
+            ) : (
+              <div className="divide-y divide-gray-100 dark:divide-slate-800">
+                {data.recentActivities.map(activity => (
+                  <div key={activity._id} className="p-4 flex gap-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <div className="mt-1">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                        <Activity size={16} />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {activity.module_name} <span className="text-gray-500 font-normal">({activity.action})</span>
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{activity.details}</p>
+                      <p className="text-xs text-gray-400 mt-1">{new Date(activity.created_at).toLocaleString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Reusing HR Dashboard for Organization overview */}
       <div>

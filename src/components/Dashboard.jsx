@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase, ChevronDown, Package, Layers, CreditCard, Palette, Key, Megaphone
 } from 'lucide-react';
 import config from '../config';
 
@@ -32,6 +32,30 @@ import HRSettingsModule from './HRSettingsModule';
 import DocumentModule from './DocumentModule';
 import ReportsModule from './ReportsModule';
 import MasterModule from './MasterModule';
+import CompanyMaster from './CompanyMaster';
+import SettingsModule from './settings/SettingsModule';
+import CustomerManagement from './customer/CustomerManagement';
+import VendorManagement from './vendor/VendorManagement';
+import ProductCategoryManagement from './product/ProductCategoryManagement';
+import ProductManagement from './product/ProductManagement';
+import QuotationManagement from './quotation/QuotationManagement';
+import WorkOrderManagement from './workOrder/WorkOrderManagement';
+import EmployeeTaskDashboard from './workOrder/EmployeeTaskDashboard';
+import InvoiceManagement from './finance/InvoiceManagement';
+import PaymentManagement from './finance/PaymentManagement';
+import LedgerManagement from './finance/LedgerManagement';
+import BusinessReports from './finance/BusinessReports';
+import ExpenseCategoryManagement from './finance/ExpenseCategoryManagement';
+import ExpenseManagement from './finance/ExpenseManagement';
+import ExpenseLedger from './finance/ExpenseLedger';
+import AccountingDashboard from './finance/AccountingDashboard';
+import PlanManagement from './saas/PlanManagement';
+import CompanySubscriptions from './saas/CompanySubscriptions';
+import BillingSettings from './saas/BillingSettings';
+import WhiteLabelSettings from './saas/WhiteLabelSettings';
+import ApiManagement from './saas/ApiManagement';
+import Announcements from './saas/Announcements';
+import BranchManagement from './branches/BranchManagement';
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
@@ -169,7 +193,7 @@ const EditUserModal = ({ user, onClose, onSaved }) => {
 };
 
 // ─── Create User Modal ───────────────────────────────────────────────────────────
-const CreateUserModal = ({ onClose, onCreated }) => {
+const CreateUserModal = ({ onClose, onCreated, currentUserRole }) => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [role, setRole] = useState('employee');
   const [loading, setLoading] = useState(false);
@@ -182,10 +206,20 @@ const CreateUserModal = ({ onClose, onCreated }) => {
     setLoading(true);
     setError('');
     try {
+      const payload = { ...form, role };
+      if (currentUserRole === 'Company Admin') {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+          const actualToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+          const decoded = JSON.parse(atob(actualToken.split('.')[1]));
+          payload.companyId = decoded.companyId;
+        }
+      }
+
       const res = await fetch(`${config.apiUrl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, role }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (data.success) {
@@ -254,7 +288,9 @@ const CreateUserModal = ({ onClose, onCreated }) => {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Role</label>
             <div className="flex gap-2">
-              {['user', 'employee', 'HR', 'Admin'].map((r) => (
+              {['user', 'employee', 'HR', 'Admin']
+                .filter(r => currentUserRole === 'Admin' || (r !== 'Admin' && r !== 'Company Admin'))
+                .map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -376,6 +412,7 @@ const UsersModule = () => {
       {/* Create User Modal */}
       {showCreateModal && (
         <CreateUserModal
+          currentUserRole={currentUserRole}
           onClose={() => setShowCreateModal(false)}
           onCreated={() => {
             setShowCreateModal(false);
@@ -1376,6 +1413,8 @@ const LeavesModule = () => {
 const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [expandedMenus, setExpandedMenus] = useState({});
+  const toggleMenu = (id) => setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
     if (hash.startsWith('dashboard/')) {
@@ -1383,6 +1422,32 @@ const Dashboard = () => {
     }
     return 'overview';
   });
+
+  const [companyDetails, setCompanyDetails] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+    const actualToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+    let companyId = null;
+    try {
+      const payload = JSON.parse(atob(actualToken.split('.')[1]));
+      companyId = payload.companyId;
+    } catch (e) {
+      // ignore
+    }
+    
+    if (companyId) {
+      fetch(`${config.apiUrl}/companies/${companyId}`, { headers: authHeaders() })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.data) {
+            setCompanyDetails(data.data);
+          }
+        })
+        .catch(console.error);
+    }
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -1412,14 +1477,73 @@ const Dashboard = () => {
     { id: 'attendance', label: 'Attendance', icon: Clock },
     { id: 'leaves', label: 'Leaves', icon: CalendarDays },
     { id: 'regularization', label: 'Regularization', icon: ClipboardList },
-    ...(role === 'Admin' || role === 'HR' ? [{ id: 'salary', label: 'Payroll', icon: IndianRupee }] : []),
-    ...(role === 'Admin' ? [{ id: 'users', label: 'Auth Users', icon: Users }] : []),
-    ...(role === 'Admin' || role === 'HR' ? [{ id: 'organization', label: 'Org & Staff', icon: Building }] : []),
-    ...(role === 'Admin' || role === 'HR' ? [{ id: 'hr-settings', label: 'HR Settings', icon: Settings }] : []),
-    ...(role === 'Admin' || role === 'HR' ? [{ id: 'master', label: 'Job Master', icon: Briefcase }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'salary', label: 'Payroll', icon: IndianRupee }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'users', label: 'Auth Users', icon: Users }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'organization', label: 'Org & Staff', icon: Building }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'hr-settings', label: 'HR Settings', icon: Settings }] : []),
+    ...(role === 'Admin' ? [{ 
+      id: 'saas-group', 
+      label: 'SaaS Admin', 
+      icon: Layers,
+      subItems: [
+        { id: 'plans', label: 'Subscription Plans' },
+        { id: 'company-subscriptions', label: 'All Subscriptions' },
+        { id: 'announcements', label: 'Announcements' },
+      ]
+    }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ 
+      id: 'master-group', 
+      label: 'Master', 
+      icon: Briefcase,
+      subItems: [
+        { id: 'master', label: 'Job Master' },
+        ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'branches', label: 'Branches' }] : []),
+        ...(role === 'Admin' ? [{ id: 'company-master', label: 'Company Master' }] : []),
+      ]
+    }] : []),
     { id: 'documents', label: 'Documents', icon: FileText },
-    ...(role === 'Admin' || role === 'HR' ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
+    { id: 'settings', label: 'Settings', icon: Settings },
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
     ...(role !== 'employee' ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
+    ...(role === 'Company Admin' ? [{ id: 'billing', label: 'Billing & Plan', icon: CreditCard }] : []),
+    ...(role === 'Company Admin' ? [{ id: 'white-label', label: 'Branding', icon: Palette }] : []),
+    ...(role === 'Company Admin' ? [{ id: 'api-keys', label: 'API Keys', icon: Key }] : []),
+    ...(role === 'Company Admin' ? [{ id: 'announcements', label: 'Announcements', icon: Megaphone }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{ 
+      id: 'crm-group', 
+      label: 'CRM & Inventory', 
+      icon: Package,
+      subItems: [
+        { id: 'customers', label: 'Customers' },
+        ...(role !== 'employee' ? [{ id: 'vendors', label: 'Vendors' }] : []),
+        { id: 'product-categories', label: 'Categories' },
+        { id: 'products', label: 'Products' }
+      ]
+    }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{ 
+      id: 'sales-ops-group', 
+      label: 'Sales & Ops', 
+      icon: Briefcase,
+      subItems: [
+        ...(role !== 'employee' ? [{ id: 'quotations', label: 'Quotations' }] : []),
+        ...(role !== 'employee' ? [{ id: 'work-orders', label: 'Work Orders' }] : []),
+        ...(role === 'employee' ? [{ id: 'my-tasks', label: 'My Tasks' }] : [])
+      ]
+    }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{ 
+      id: 'finance-group', 
+      label: 'Finance', 
+      icon: IndianRupee,
+      subItems: [
+        ...(role !== 'employee' ? [{ id: 'invoices', label: 'Invoices' }] : []),
+        ...(role !== 'employee' ? [{ id: 'payments', label: 'Payments & Receipts' }] : []),
+        ...(role !== 'employee' ? [{ id: 'ledger', label: 'Ledger' }] : []),
+        ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'expense-categories', label: 'Expense Categories' }] : []),
+        ...(role !== 'employee' ? [{ id: 'expenses', label: 'Expenses' }] : []),
+        ...(role !== 'employee' ? [{ id: 'expense-ledger', label: 'Expense Ledger' }] : []),
+        ...(role !== 'employee' ? [{ id: 'accounting-dashboard', label: 'Analytics & Reports' }] : [])
+      ]
+    }] : []),
   ];
 
   return (
@@ -1433,22 +1557,30 @@ const Dashboard = () => {
       )}
 
       {/* ── Sidebar ── */}
-      <aside className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm transform transition-all duration-300 ease-in-out md:relative shrink-0 ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'} ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm transform transition-all duration-300 ease-in-out md:sticky md:top-0 md:h-screen shrink-0 ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'} ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}`}>
         <div className={`p-5 border-b border-gray-200 dark:border-slate-800 flex items-center ${isSidebarCollapsed ? 'md:justify-center md:px-0' : ''}`}>
           <a
             href="#home"
             className="flex items-center gap-2.5"
           >
-            <img
-              src="https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw"
-              alt="DigitalTechSolution logo"
-              className="w-9 h-9 rounded-lg object-cover bg-white ring-1 ring-blue-100 dark:ring-slate-700 shrink-0"
-              referrerPolicy="no-referrer"
-              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }}
-            />
+            {companyDetails?.logo ? (
+              <img
+                src={companyDetails.logo}
+                alt={`${companyDetails.company_name} logo`}
+                className="w-9 h-9 rounded-lg object-cover bg-white ring-1 ring-blue-100 dark:ring-slate-700 shrink-0"
+              />
+            ) : (
+              <img
+                src="https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw"
+                alt="DigitalTechSolution logo"
+                className="w-9 h-9 rounded-lg object-cover bg-white ring-1 ring-blue-100 dark:ring-slate-700 shrink-0"
+                referrerPolicy="no-referrer"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }}
+              />
+            )}
             <div className={`${isSidebarCollapsed ? 'md:hidden' : 'block'}`}>
-              <p className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent leading-tight truncate">
-                DigitalTechSolution
+              <p className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent leading-tight truncate max-w-[140px]" title={companyDetails?.company_name || 'DigitalTechSolution'}>
+                {companyDetails?.company_name || 'DigitalTechSolution'}
               </p>
               <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">Management Dashboard</p>
             </div>
@@ -1456,28 +1588,59 @@ const Dashboard = () => {
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto overflow-x-hidden">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => {
-                window.location.hash = `dashboard/${id === 'overview' ? '' : id}`;
-                setIsMobileMenuOpen(false);
-              }}
-              title={label}
-              className={`group w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isSidebarCollapsed ? 'md:w-12 md:px-0 md:justify-center md:mx-auto' : ''
-              } ${activeTab === id
-                ? `bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/30 dark:to-transparent text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 shadow-sm ${isSidebarCollapsed ? 'md:border-l-0 md:from-blue-100 md:to-blue-100 dark:md:from-blue-900/50 dark:md:to-blue-900/50' : ''}`
-                : `text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 border-l-4 border-transparent ${isSidebarCollapsed ? 'md:border-l-0' : ''}`
-                }`}
-            >
-              <Icon size={19} className={`shrink-0 ${activeTab === id && isSidebarCollapsed ? 'md:text-blue-600 dark:md:text-blue-400' : ''}`} />
-              <span className={`${isSidebarCollapsed ? 'md:hidden' : 'block'} whitespace-nowrap`}>{label}</span>
-              {activeTab === id && (
-                <motion.span layoutId="sidebar-active" className={`ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 ${isSidebarCollapsed ? 'md:hidden' : 'block'}`} />
-              )}
-            </button>
-          ))}
+          {navItems.map(({ id, label, icon: Icon, subItems }) => {
+            const isActive = activeTab === id || (subItems && subItems.some(sub => activeTab === sub.id));
+            return (
+              <div key={id}>
+                <button
+                  onClick={() => {
+                    if (subItems) {
+                      if (isSidebarCollapsed) setIsSidebarCollapsed(false);
+                      toggleMenu(id);
+                    } else {
+                      window.location.hash = `dashboard/${id === 'overview' ? '' : id}`;
+                      setIsMobileMenuOpen(false);
+                    }
+                  }}
+                  title={label}
+                  className={`group w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isSidebarCollapsed ? 'md:w-12 md:px-0 md:justify-center md:mx-auto' : ''
+                    } ${isActive
+                      ? `bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/30 dark:to-transparent text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 shadow-sm ${isSidebarCollapsed ? 'md:border-l-0 md:from-blue-100 md:to-blue-100 dark:md:from-blue-900/50 dark:md:to-blue-900/50' : ''}`
+                      : `text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 border-l-4 border-transparent ${isSidebarCollapsed ? 'md:border-l-0' : ''}`
+                    }`}
+                >
+                  <Icon size={19} className={`shrink-0 ${isActive && isSidebarCollapsed ? 'md:text-blue-600 dark:md:text-blue-400' : ''}`} />
+                  <span className={`${isSidebarCollapsed ? 'md:hidden' : 'block'} whitespace-nowrap flex-1 text-left`}>{label}</span>
+                  {subItems && !isSidebarCollapsed && (
+                    <ChevronDown size={16} className={`transition-transform duration-200 text-gray-400 ${expandedMenus[id] ? 'rotate-180' : ''}`} />
+                  )}
+                  {isActive && !subItems && (
+                    <motion.span layoutId="sidebar-active" className={`ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 ${isSidebarCollapsed ? 'md:hidden' : 'block'}`} />
+                  )}
+                </button>
+                {subItems && expandedMenus[id] && !isSidebarCollapsed && (
+                  <div className="ml-9 mt-1 space-y-1">
+                    {subItems.map(sub => (
+                      <button
+                        key={sub.id}
+                        onClick={() => {
+                          window.location.hash = `dashboard/${sub.id}`;
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === sub.id
+                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'
+                          }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${activeTab === sub.id ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                        <span>{sub.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
       </aside>
 
@@ -1499,10 +1662,18 @@ const Dashboard = () => {
               <Menu size={22} />
             </button>
             <div className="md:hidden flex items-center">
-              <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center mr-2">
-                <span className="text-white font-bold text-sm">DT</span>
+              <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center mr-2 overflow-hidden">
+                {companyDetails?.logo ? (
+                  <img src={companyDetails.logo} alt="logo" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-sm">
+                    {(companyDetails?.company_name || 'DT').substring(0, 2).toUpperCase()}
+                  </span>
+                )}
               </div>
-              <span className="font-bold text-gray-900 dark:text-white">DTS</span>
+              <span className="font-bold text-gray-900 dark:text-white truncate max-w-[120px]">
+                {companyDetails?.company_name || 'DTS'}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -1547,14 +1718,39 @@ const Dashboard = () => {
             {activeTab === 'attendance' && <AttendanceModule />}
             {activeTab === 'leaves' && <LeavesModule />}
             {activeTab === 'regularization' && <RegularizationModule />}
-            {activeTab === 'salary' && (role === 'Admin' || role === 'HR') && <PayrollModule />}
-            {activeTab === 'users' && role === 'Admin' && <UsersModule />}
-            {activeTab === 'organization' && (role === 'Admin' || role === 'HR') && <OrganizationModule />}
-            {activeTab === 'hr-settings' && (role === 'Admin' || role === 'HR') && <HRSettingsModule />}
-            {activeTab === 'master' && (role === 'Admin' || role === 'HR') && <MasterModule />}
+            {activeTab === 'salary' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <PayrollModule />}
+            {activeTab === 'users' && (role === 'Admin' || role === 'Company Admin') && <UsersModule />}
+            {activeTab === 'organization' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <OrganizationModule />}
+            {activeTab === 'hr-settings' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <HRSettingsModule />}
+            {activeTab === 'master' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <MasterModule />}
+            {activeTab === 'company-master' && role === 'Admin' && <CompanyMaster />}
+            {activeTab === 'branches' && (role === 'Admin' || role === 'Company Admin') && <BranchManagement />}
+            {activeTab === 'settings' && <SettingsModule />}
             {activeTab === 'documents' && <DocumentModule />}
-            {activeTab === 'reports' && (role === 'Admin' || role === 'HR') && <ReportsModule />}
+            {activeTab === 'reports' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <ReportsModule />}
             {activeTab === 'contacts' && <ContactsModule />}
+            
+            {activeTab === 'customers' && <CustomerManagement />}
+            {activeTab === 'vendors' && role !== 'employee' && <VendorManagement />}
+            {activeTab === 'product-categories' && <ProductCategoryManagement />}
+            {activeTab === 'products' && <ProductManagement />}
+            {activeTab === 'quotations' && role !== 'employee' && <QuotationManagement />}
+            {activeTab === 'work-orders' && role !== 'employee' && <WorkOrderManagement />}
+            {activeTab === 'my-tasks' && role === 'employee' && <EmployeeTaskDashboard />}
+            {activeTab === 'invoices' && role !== 'employee' && <InvoiceManagement />}
+            {activeTab === 'payments' && role !== 'employee' && <PaymentManagement />}
+            {activeTab === 'ledger' && role !== 'employee' && <LedgerManagement />}
+            {activeTab === 'business-reports' && role !== 'employee' && <BusinessReports />}
+            {activeTab === 'expense-categories' && (role === 'Admin' || role === 'Company Admin') && <ExpenseCategoryManagement />}
+            {activeTab === 'expenses' && role !== 'employee' && <ExpenseManagement />}
+            {activeTab === 'expense-ledger' && role !== 'employee' && <ExpenseLedger />}
+            {activeTab === 'accounting-dashboard' && role !== 'employee' && <AccountingDashboard />}
+            {activeTab === 'plans' && role === 'Admin' && <PlanManagement />}
+            {activeTab === 'company-subscriptions' && role === 'Admin' && <CompanySubscriptions />}
+            {activeTab === 'billing' && role === 'Company Admin' && <BillingSettings />}
+            {activeTab === 'white-label' && role === 'Company Admin' && <WhiteLabelSettings />}
+            {activeTab === 'api-keys' && role === 'Company Admin' && <ApiManagement />}
+            {activeTab === 'announcements' && (role === 'Company Admin' || role === 'Admin') && <Announcements />}
           </motion.div>
         </AnimatePresence>
       </main>
