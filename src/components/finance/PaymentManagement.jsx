@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, FileText, Printer, CheckCircle, AlertCircle, RefreshCw, IndianRupee } from 'lucide-react';
+import { Plus, Search, FileText, Printer, CheckCircle, AlertCircle, RefreshCw, IndianRupee, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReactToPrint } from 'react-to-print';
 import config from '../../config';
@@ -231,7 +231,7 @@ const PaymentManagement = () => {
       {/* RECORD PAYMENT MODAL */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden shadow-2xl flex flex-col">
             <div className="p-6 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
               <h3 className="text-xl font-bold flex items-center gap-2 text-green-600">
                 <IndianRupee size={20} /> Record Incoming Payment

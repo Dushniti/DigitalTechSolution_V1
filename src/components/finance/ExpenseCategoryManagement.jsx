@@ -9,6 +9,17 @@ const authHeaders = () => ({
   Authorization: getToken() || '',
 });
 
+const getRoleFromToken = () => {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split(' ')[1].split('.')[1]));
+    return payload.role;
+  } catch (e) {
+    return null;
+  }
+};
+
 const ExpenseCategoryManagement = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +28,21 @@ const ExpenseCategoryManagement = () => {
   
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ id: '', category_name: '', status: 'Active' });
+  const [formData, setFormData] = useState({ id: '', company_id: '', category_name: '', status: 'Active' });
+  const [companies, setCompanies] = useState([]);
+  const role = getRoleFromToken();
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await fetch(`${config.apiUrl}/companies`, { headers: authHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        setCompanies(data.data.filter(c => c.status === 'Active'));
+      }
+    } catch (err) {
+      console.error('Failed to fetch companies');
+    }
+  };
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -38,14 +63,15 @@ const ExpenseCategoryManagement = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+    if (role === 'Admin') fetchCompanies();
+  }, [role]);
 
   const handleOpenModal = (category = null) => {
     if (category) {
-      setFormData({ id: category._id, category_name: category.category_name, status: category.status });
+      setFormData({ id: category._id, company_id: category.company_id || '', category_name: category.category_name, status: category.status });
       setIsEditing(true);
     } else {
-      setFormData({ id: '', category_name: '', status: 'Active' });
+      setFormData({ id: '', company_id: '', category_name: '', status: 'Active' });
       setIsEditing(false);
     }
     setShowModal(true);
@@ -71,6 +97,7 @@ const ExpenseCategoryManagement = () => {
         method,
         headers: authHeaders(),
         body: JSON.stringify({
+          company_id: formData.company_id,
           category_name: formData.category_name,
           status: formData.status
         })
@@ -231,6 +258,20 @@ const ExpenseCategoryManagement = () => {
                     placeholder="e.g. Travel, Office Supplies"
                   />
                 </div>
+
+                {role === 'Admin' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Company (Optional)</label>
+                    <select
+                      value={formData.company_id}
+                      onChange={(e) => setFormData({...formData, company_id: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white text-sm"
+                    >
+                      <option value="">Global (All Companies)</option>
+                      {companies.map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>

@@ -28,14 +28,16 @@ const InvoiceManagement = () => {
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [workOrders, setWorkOrders] = useState([]);
-  
+  const [companies, setCompanies] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [role, setRole] = useState(null);
-  
+  const [companyProfile, setCompanyProfile] = useState(null);
+
   // PDF Printing states
   const [viewInvoice, setViewInvoice] = useState(null);
   const printRef = useRef();
@@ -51,33 +53,51 @@ const InvoiceManagement = () => {
     terms: '1. Payment is due within 30 days.\n2. Please mention the invoice number in your payment reference.',
     items: []
   });
-  
+
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     const currentRole = getRoleFromToken();
     setRole(currentRole);
-    fetchData();
+
+    // Also fetch company profile if not Admin
+    const token = localStorage.getItem('adminToken');
+    if (token && currentRole !== 'Admin') {
+      const payload = JSON.parse(atob(token.startsWith('Bearer ') ? token.split(' ')[1].split('.')[1] : token.split('.')[1]));
+      if (payload.companyId) {
+        fetch(`${config.apiUrl}/companies/${payload.companyId}`, { headers: getAuthHeaders() })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) setCompanyProfile(data.data);
+          });
+      }
+    }
+
+    fetchData(currentRole);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (currentRole = role) => {
     setLoading(true);
     try {
-      const [invRes, custRes, prodRes, woRes] = await Promise.all([
+      const endpoints = [
         fetch(`${config.apiUrl}/invoices`, { headers: getAuthHeaders() }),
         fetch(`${config.apiUrl}/customers`, { headers: getAuthHeaders() }),
         fetch(`${config.apiUrl}/products`, { headers: getAuthHeaders() }),
         fetch(`${config.apiUrl}/work-orders`, { headers: getAuthHeaders() })
-      ]);
+      ];
 
-      const [invData, custData, prodData, woData] = await Promise.all([
-        invRes.json(), custRes.json(), prodRes.json(), woRes.json()
-      ]);
+      if (currentRole === 'Admin') {
+        endpoints.push(fetch(`${config.apiUrl}/companies`, { headers: getAuthHeaders() }));
+      }
 
-      if (invData.success) setInvoices(invData.data);
-      if (custData.success) setCustomers(custData.data);
-      if (prodData.success) setProducts(prodData.data);
-      if (woData.success) setWorkOrders(woData.data);
+      const responses = await Promise.all(endpoints);
+      const data = await Promise.all(responses.map(r => r.json()));
+
+      if (data[0].success) setInvoices(data[0].data);
+      if (data[1].success) setCustomers(data[1].data);
+      if (data[2].success) setProducts(data[2].data);
+      if (data[3].success) setWorkOrders(data[3].data);
+      if (currentRole === 'Admin' && data[4]?.success) setCompanies(data[4].data);
 
     } catch {
       setError('Network error');
@@ -119,7 +139,7 @@ const InvoiceManagement = () => {
   const updateItem = (index, field, value) => {
     const newItems = [...form.items];
     newItems[index][field] = value;
-    
+
     // Auto populate price and desc if product is selected
     if (field === 'service_id') {
       const product = products.find(p => p._id === value);
@@ -170,14 +190,14 @@ const InvoiceManagement = () => {
     try {
       const url = editingId ? `${config.apiUrl}/invoices/${editingId}` : `${config.apiUrl}/invoices`;
       const method = editingId ? 'PUT' : 'POST';
-      
+
       const res = await fetch(url, {
         method,
         headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setShowModal(false);
         fetchData();
@@ -219,15 +239,15 @@ const InvoiceManagement = () => {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
     documentTitle: `Invoice_${viewInvoice?.invoice_number}`,
   });
 
   const canManage = role === 'Admin' || role === 'Company Admin' || role === 'User';
-  
+
   // Filter search
-  const filteredInvoices = invoices.filter(i => 
-    i.invoice_number?.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredInvoices = invoices.filter(i =>
+    i.invoice_number?.toLowerCase().includes(search.toLowerCase()) ||
     i.customerDetails?.company_name?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -256,9 +276,9 @@ const InvoiceManagement = () => {
         <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search invoices..." 
+            <input
+              type="text"
+              placeholder="Search invoices..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -293,15 +313,15 @@ const InvoiceManagement = () => {
                     <div>{new Date(inv.invoice_date).toLocaleDateString()}</div>
                     <div className="text-xs text-red-500 mt-1">Due: {inv.due_date ? new Date(inv.due_date).toLocaleDateString() : 'N/A'}</div>
                   </td>
-                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">₹{inv.grand_total?.toFixed(2)}</td>
-                  <td className="px-6 py-4 font-bold text-red-600">₹{inv.balance_amount?.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">₹{Number(inv.grand_total || 0).toFixed(2)}</td>
+                  <td className="px-6 py-4 font-bold text-red-600">₹{Number(inv.balance_amount || 0).toFixed(2)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-lg 
-                      ${inv.status === 'Paid' ? 'bg-green-100 text-green-700' : 
-                        inv.status === 'Partially Paid' ? 'bg-blue-100 text-blue-700' : 
-                        inv.status === 'Draft' ? 'bg-gray-100 text-gray-700' : 
-                        inv.status === 'Overdue' ? 'bg-red-100 text-red-700' : 
-                        'bg-yellow-100 text-yellow-700'}`}>
+                      ${inv.status === 'Paid' ? 'bg-green-100 text-green-700' :
+                        inv.status === 'Partially Paid' ? 'bg-blue-100 text-blue-700' :
+                          inv.status === 'Draft' ? 'bg-gray-100 text-gray-700' :
+                            inv.status === 'Overdue' ? 'bg-red-100 text-red-700' :
+                              'bg-yellow-100 text-yellow-700'}`}>
                       {inv.status}
                     </span>
                   </td>
@@ -330,15 +350,15 @@ const InvoiceManagement = () => {
               </h3>
               <button onClick={() => setShowModal(false)} className="p-2 text-gray-400 hover:bg-gray-200 rounded-lg"><X size={20} /></button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto grow">
               <form id="invoiceForm" onSubmit={handleSubmit} className="space-y-8">
-                
+
                 {/* Header Info */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-gray-50 dark:bg-slate-800/30 p-6 rounded-2xl border border-gray-100 dark:border-slate-700">
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Invoice #</label>
-                    <input required value={form.invoice_number} onChange={(e) => setForm({...form, invoice_number: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white font-mono" />
+                    <input required value={form.invoice_number} onChange={(e) => setForm({ ...form, invoice_number: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white font-mono" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Convert from WO (Optional)</label>
@@ -351,25 +371,25 @@ const InvoiceManagement = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Customer*</label>
-                    <select required value={form.customer_id} onChange={(e) => setForm({...form, customer_id: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white">
+                    <select required value={form.customer_id} onChange={(e) => setForm({ ...form, customer_id: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white">
                       <option value="">Select Customer</option>
                       {customers.map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Status</label>
-                    <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white">
+                    <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white">
                       <option value="Draft">Draft</option>
                       <option value="Generated">Generated</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Invoice Date</label>
-                    <input type="date" required value={form.invoice_date} onChange={(e) => setForm({...form, invoice_date: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white" />
+                    <input type="date" required value={form.invoice_date} onChange={(e) => setForm({ ...form, invoice_date: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Due Date</label>
-                    <input type="date" value={form.due_date} onChange={(e) => setForm({...form, due_date: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white" />
+                    <input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white" />
                   </div>
                 </div>
 
@@ -404,14 +424,14 @@ const InvoiceManagement = () => {
                           <td className="px-4 py-2"><input type="number" value={item.tax} onChange={(e) => updateItem(index, 'tax', e.target.value)} className="w-full p-2 border rounded-lg" /></td>
                           <td className="px-4 py-2 font-bold text-gray-900 dark:text-white bg-gray-50 dark:bg-slate-800">₹{item.amount?.toFixed(2)}</td>
                           <td className="px-4 py-2">
-                            <button type="button" onClick={() => removeItem(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>
+                            <button type="button" onClick={() => removeItem(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   <div className="p-3 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700">
-                    <button type="button" onClick={addItem} className="flex items-center gap-2 text-blue-600 font-semibold text-sm hover:underline"><Plus size={16}/> Add Line Item</button>
+                    <button type="button" onClick={addItem} className="flex items-center gap-2 text-blue-600 font-semibold text-sm hover:underline"><Plus size={16} /> Add Line Item</button>
                   </div>
                 </div>
 
@@ -420,14 +440,14 @@ const InvoiceManagement = () => {
                   <div className="flex-1 space-y-4">
                     <div>
                       <label className="block text-sm font-semibold mb-1.5">Terms & Conditions</label>
-                      <textarea value={form.terms} onChange={(e) => setForm({...form, terms: e.target.value})} className="w-full px-4 py-2 border rounded-xl" rows={3} />
+                      <textarea value={form.terms} onChange={(e) => setForm({ ...form, terms: e.target.value })} className="w-full px-4 py-2 border rounded-xl" rows={3} />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold mb-1.5">Private Notes</label>
-                      <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full px-4 py-2 border rounded-xl" rows={2} />
+                      <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-4 py-2 border rounded-xl" rows={2} />
                     </div>
                   </div>
-                  
+
                   <div className="w-full md:w-80 bg-gray-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-gray-200 dark:border-slate-700 h-fit">
                     {(() => {
                       const t = calculateTotals();
@@ -446,7 +466,7 @@ const InvoiceManagement = () => {
                 </div>
               </form>
             </div>
-            
+
             <div className="p-6 border-t border-gray-200 dark:border-slate-800 flex justify-end gap-3 shrink-0 bg-white dark:bg-slate-900">
               <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2 rounded-xl border font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
               <button type="submit" form="invoiceForm" disabled={formLoading} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold flex items-center gap-2">
@@ -463,17 +483,25 @@ const InvoiceManagement = () => {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden">
               <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2"><FileText size={18}/> Document Preview</h3>
+                <h3 className="font-bold text-gray-800 flex items-center gap-2"><FileText size={18} /> Document Preview</h3>
                 <div className="flex gap-2">
-                  <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold transition-colors"><Printer size={16}/> Print PDF</button>
-                  <button onClick={() => setViewInvoice(null)} className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg"><X size={20}/></button>
+                  <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold transition-colors"><Printer size={16} /> Print PDF</button>
+                  <button onClick={() => setViewInvoice(null)} className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg"><X size={20} /></button>
                 </div>
               </div>
-              
+
               {/* PRINTABLE AREA */}
               <div className="overflow-y-auto p-8 bg-gray-100 flex justify-center">
-                <div ref={printRef} className="bg-white p-10 w-[210mm] min-h-[297mm] shadow-lg text-black print:shadow-none print:p-0">
-                  
+                <style>
+                  {`
+                    @media print {
+                      @page { margin: 10mm; size: A4; }
+                      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                  `}
+                </style>
+                <div ref={printRef} className="bg-white p-10 w-full max-w-[210mm] min-h-[297mm] shadow-lg text-black print:w-full print:max-w-full print:min-h-fit print:shadow-none print:p-0">
+
                   {/* Header */}
                   <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-6">
                     <div>
@@ -481,8 +509,19 @@ const InvoiceManagement = () => {
                       <p className="text-gray-500 font-semibold mt-1">Ref: {viewInvoice.invoice_number}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-black text-blue-600">Company Name</div>
-                      <div className="text-sm text-gray-600 mt-1">123 Tech Park, Sector 4<br/>Bangalore, IN 560001<br/>GST: 29ABCDE1234F1Z5</div>
+                      {(() => {
+                        const comp = viewInvoice?.companyDetails || (role === 'Admin' ? companies.find(c => c._id === viewInvoice?.company_id) : companyProfile) || {};
+                        return (
+                          <>
+                            <div className="text-2xl font-black text-blue-600">{comp.company_name || 'Company Name'}</div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              {comp.address || '123 Tech Park, Sector 4'}<br />
+                              {comp.city || 'City'}, {comp.state || 'State'} {comp.zip_code || '000000'}<br />
+                              {comp.tax_number ? `GST: ${comp.tax_number}` : ''}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -492,8 +531,8 @@ const InvoiceManagement = () => {
                       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Billed To:</h3>
                       <div className="font-bold text-lg text-gray-800">{viewInvoice.customerDetails?.company_name}</div>
                       <div className="text-sm text-gray-600 leading-relaxed">
-                        {viewInvoice.customerDetails?.email}<br/>
-                        {viewInvoice.customerDetails?.phone}<br/>
+                        {viewInvoice.customerDetails?.email}<br />
+                        {viewInvoice.customerDetails?.phone}<br />
                         GST: {viewInvoice.customerDetails?.tax_number || 'N/A'}
                       </div>
                     </div>
@@ -525,9 +564,9 @@ const InvoiceManagement = () => {
                         <tr key={idx}>
                           <td className="p-3 text-sm font-medium">{item.description}</td>
                           <td className="p-3 text-sm text-center">{item.quantity}</td>
-                          <td className="p-3 text-sm text-right">₹{item.unit_price?.toFixed(2)}</td>
+                          <td className="p-3 text-sm text-right">₹{Number(item.unit_price || 0).toFixed(2)}</td>
                           <td className="p-3 text-sm text-right">{item.tax}%</td>
-                          <td className="p-3 text-sm text-right font-bold">₹{item.amount?.toFixed(2)}</td>
+                          <td className="p-3 text-sm text-right font-bold">₹{Number(item.amount || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -538,23 +577,23 @@ const InvoiceManagement = () => {
                     <div className="w-72 space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className="font-bold text-gray-500">Subtotal:</span>
-                        <span className="font-semibold">₹{viewInvoice.subtotal?.toFixed(2)}</span>
+                        <span className="font-semibold">₹{Number(viewInvoice.subtotal || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="font-bold text-gray-500">Discount:</span>
-                        <span className="font-semibold text-red-600">-₹{viewInvoice.discount_amount?.toFixed(2)}</span>
+                        <span className="font-semibold text-red-600">-₹{Number(viewInvoice.discount_amount || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="font-bold text-gray-500">Tax Amount:</span>
-                        <span className="font-semibold">₹{viewInvoice.tax_amount?.toFixed(2)}</span>
+                        <span className="font-semibold">₹{Number(viewInvoice.tax_amount || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-lg bg-gray-100 p-3 rounded-lg mt-2">
                         <span className="font-black text-gray-800">Grand Total:</span>
-                        <span className="font-black text-blue-600">₹{viewInvoice.grand_total?.toFixed(2)}</span>
+                        <span className="font-black text-blue-600">₹{Number(viewInvoice.grand_total || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-md p-2 mt-2 border-t-2 border-dashed border-gray-300">
                         <span className="font-bold text-gray-600">Balance Due:</span>
-                        <span className="font-black text-red-600">₹{viewInvoice.balance_amount?.toFixed(2)}</span>
+                        <span className="font-black text-red-600">₹{Number(viewInvoice.balance_amount || 0).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -564,9 +603,9 @@ const InvoiceManagement = () => {
                     <div>
                       <h4 className="font-bold text-gray-800 mb-2">Terms & Conditions</h4>
                       <p className="whitespace-pre-line text-xs">{viewInvoice.terms}</p>
-                      
+
                       <h4 className="font-bold text-gray-800 mt-4 mb-1">Bank Details</h4>
-                      <p className="text-xs">Bank Name: HDFC Bank<br/>A/C: 50100123456789<br/>IFSC: HDFC0001234</p>
+                      <p className="text-xs">Bank Name: HDFC Bank<br />A/C: 50100123456789<br />IFSC: HDFC0001234</p>
                     </div>
                     <div className="text-right flex flex-col justify-end items-end">
                       <div className="w-48 h-16 border-b-2 border-gray-300 mb-2"></div>

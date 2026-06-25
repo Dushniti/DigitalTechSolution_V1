@@ -22,6 +22,7 @@ const ExpenseManagement = () => {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [vendors, setVendors] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,6 +32,7 @@ const ExpenseManagement = () => {
   
   const [formData, setFormData] = useState({ 
     id: '', 
+    company_id: '',
     category_id: '', 
     vendor_id: '', 
     expense_date: new Date().toISOString().split('T')[0],
@@ -49,18 +51,26 @@ const ExpenseManagement = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [expRes, catRes, venRes] = await Promise.all([
+      const promises = [
         fetch(`${config.apiUrl}/expenses`, { headers: jsonAuthHeaders() }),
         fetch(`${config.apiUrl}/expense-categories`, { headers: jsonAuthHeaders() }),
         fetch(`${config.apiUrl}/vendors`, { headers: jsonAuthHeaders() })
-      ]);
-      const expData = await expRes.json();
-      const catData = await catRes.json();
-      const venData = await venRes.json();
+      ];
+      if (role === 'Admin') promises.push(fetch(`${config.apiUrl}/companies`, { headers: jsonAuthHeaders() }));
+
+      const resAll = await Promise.all(promises);
+      const expData = await resAll[0].json();
+      const catData = await resAll[1].json();
+      const venData = await resAll[2].json();
       
       if (expData.success) setExpenses(expData.data);
       if (catData.success) setCategories(catData.data.filter(c => c.status === 'Active'));
       if (venData.success) setVendors(venData.data.filter(v => v.status === 'Active'));
+
+      if (role === 'Admin' && resAll[3]) {
+        const compData = await resAll[3].json();
+        if (compData.success) setCompanies(compData.data.filter(c => c.status === 'Active'));
+      }
     } catch (err) {
       setError('Network error loading data');
     } finally {
@@ -81,6 +91,7 @@ const ExpenseManagement = () => {
     if (expense) {
       setFormData({ 
         id: expense._id, 
+        company_id: expense.company_id || '',
         category_id: expense.category_id, 
         vendor_id: expense.vendor_id || '', 
         expense_date: expense.expense_date.split('T')[0],
@@ -96,6 +107,7 @@ const ExpenseManagement = () => {
     } else {
       setFormData({ 
         id: '', 
+        company_id: '',
         category_id: categories.length > 0 ? categories[0]._id : '', 
         vendor_id: '', 
         expense_date: new Date().toISOString().split('T')[0],
@@ -329,20 +341,29 @@ const ExpenseManagement = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl my-8 overflow-hidden border border-gray-200 dark:border-slate-800"
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden border border-gray-200 dark:border-slate-800"
             >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-800">
+              <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-800 shrink-0">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                   {isEditing ? 'Edit Expense' : 'New Expense'}
                 </h3>
-                <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <button type="button" onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                   <X size={20} />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="p-5">
+              <form onSubmit={handleSubmit} className="p-5 overflow-y-auto">
                 {error && <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-xl">{error}</div>}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {role === 'Admin' && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Company (Optional)</label>
+                      <select value={formData.company_id} onChange={(e) => setFormData({...formData, company_id: e.target.value})} className="w-full px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white text-sm">
+                        <option value="">Global / Select Company</option>
+                        {companies.map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
+                      </select>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category *</label>
                     <select required value={formData.category_id} onChange={(e) => setFormData({...formData, category_id: e.target.value})} className="w-full px-3 py-2 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:bg-slate-800 dark:text-white text-sm">
@@ -398,7 +419,7 @@ const ExpenseManagement = () => {
                   </div>
                 </div>
 
-                <div className="pt-6 flex justify-end gap-3 mt-4 border-t border-gray-100 dark:border-slate-800">
+                <div className="pt-6 flex justify-end gap-3 mt-4 border-t border-gray-100 dark:border-slate-800 shrink-0">
                   <button type="button" onClick={handleCloseModal} className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700 rounded-xl transition-colors">
                     Cancel
                   </button>
