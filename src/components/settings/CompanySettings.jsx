@@ -15,6 +15,14 @@ const getCompanyId = () => {
     return payload.companyId;
   } catch (e) { return null; }
 };
+const getRoleFromToken = () => {
+  const token = getToken();
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.role;
+  } catch (e) { return null; }
+};
 
 const CompanySettings = () => {
   const [form, setForm] = useState({
@@ -50,17 +58,47 @@ const CompanySettings = () => {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
 
-  const companyId = getCompanyId();
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState(null);
+
+  const role = getRoleFromToken();
+  const tokenCompanyId = getCompanyId();
 
   useEffect(() => {
-    if (!companyId) {
-      setError('Company ID not found.');
-      setLoading(false);
-      return;
+    if (role === 'Admin') {
+      // Fetch all companies for Admin to select
+      fetch(`${config.apiUrl}/companies`, { headers: { ...authHeaders(), 'Content-Type': 'application/json' } })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.data.length > 0) {
+            setCompanies(data.data);
+            setSelectedCompanyId(data.data[0]._id);
+          } else {
+            setLoading(false);
+            setError('No companies found.');
+          }
+        })
+        .catch(() => {
+          setError('Failed to fetch companies.');
+          setLoading(false);
+        });
+    } else {
+      if (!tokenCompanyId) {
+        setError('Company ID not found.');
+        setLoading(false);
+        return;
+      }
+      setSelectedCompanyId(tokenCompanyId);
     }
+  }, [role, tokenCompanyId]);
+
+  useEffect(() => {
+    if (!selectedCompanyId) return;
+    
+    setLoading(true);
     const fetchCompany = async () => {
       try {
-        const res = await fetch(`${config.apiUrl}/companies/${companyId}`, { headers: { ...authHeaders(), 'Content-Type': 'application/json' } });
+        const res = await fetch(`${config.apiUrl}/companies/${selectedCompanyId}`, { headers: { ...authHeaders(), 'Content-Type': 'application/json' } });
         const data = await res.json();
         if (data.success) {
           const cData = data.data;
@@ -75,7 +113,7 @@ const CompanySettings = () => {
       }
     };
     fetchCompany();
-  }, [companyId]);
+  }, [selectedCompanyId]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -110,7 +148,7 @@ const CompanySettings = () => {
       if (logoFile) formData.append('logo', logoFile);
       if (signatureFile) formData.append('signature', signatureFile);
 
-      const res = await fetch(`${config.apiUrl}/companies/${companyId}`, {
+      const res = await fetch(`${config.apiUrl}/companies/${selectedCompanyId}`, {
         method: 'PUT',
         headers: authHeaders(),
         body: formData,
@@ -143,6 +181,21 @@ const CompanySettings = () => {
       {error && (
         <div className="mb-4 flex items-center gap-2 p-4 rounded-xl bg-red-50 text-red-700 text-sm border border-red-200">
           <AlertCircle size={16} /> {error}
+        </div>
+      )}
+
+      {role === 'Admin' && (
+        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Select Company to Update Profile</label>
+          <select
+            value={selectedCompanyId || ''}
+            onChange={(e) => setSelectedCompanyId(e.target.value)}
+            className="w-full md:w-1/2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 transition-all"
+          >
+            {companies.map(c => (
+              <option key={c._id} value={c._id}>{c.company_name}</option>
+            ))}
+          </select>
         </div>
       )}
 
