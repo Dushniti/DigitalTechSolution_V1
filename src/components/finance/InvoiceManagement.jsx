@@ -43,6 +43,7 @@ const InvoiceManagement = () => {
   const printRef = useRef();
 
   const [form, setForm] = useState({
+    company_id: '',
     invoice_number: `INV-${Date.now()}`,
     customer_id: '',
     work_order_id: '',
@@ -214,6 +215,7 @@ const InvoiceManagement = () => {
 
   const resetForm = () => {
     setForm({
+      company_id: '',
       invoice_number: `INV-${Date.now()}`,
       customer_id: '', work_order_id: '',
       invoice_date: new Date().toISOString().split('T')[0], due_date: '',
@@ -224,6 +226,7 @@ const InvoiceManagement = () => {
 
   const openEdit = (inv) => {
     setForm({
+      company_id: inv.company_id || '',
       invoice_number: inv.invoice_number,
       customer_id: inv.customer_id,
       work_order_id: inv.work_order_id || '',
@@ -356,24 +359,40 @@ const InvoiceManagement = () => {
 
                 {/* Header Info */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 bg-gray-50 dark:bg-slate-800/30 p-6 rounded-2xl border border-gray-100 dark:border-slate-700">
+                  {role === 'Admin' && (
+                    <div className="md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-gray-200 dark:border-slate-700 pb-4 mb-2">
+                      <div>
+                        <label className="block text-sm font-semibold mb-1.5 text-purple-700 dark:text-purple-400">Select Company (Admin Only)*</label>
+                        <select required value={form.company_id} onChange={(e) => setForm({ ...form, company_id: e.target.value, customer_id: '', work_order_id: '' })} className="w-full px-4 py-2 border-2 border-purple-300 dark:border-purple-600 rounded-xl bg-purple-50 dark:bg-slate-800">
+                          <option value="">Select a Company first</option>
+                          {companies.map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Invoice #</label>
                     <input required value={form.invoice_number} onChange={(e) => setForm({ ...form, invoice_number: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white font-mono" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Convert from WO (Optional)</label>
-                    <select value={form.work_order_id} onChange={(e) => handleWorkOrderSelect(e.target.value)} className="w-full px-4 py-2 border rounded-xl bg-white">
+                    <select value={form.work_order_id} onChange={(e) => handleWorkOrderSelect(e.target.value)} className="w-full px-4 py-2 border rounded-xl bg-white" disabled={role === 'Admin' && !form.company_id}>
                       <option value="">Select Work Order...</option>
-                      {workOrders.filter(w => w.status !== 'Draft').map(w => (
-                        <option key={w._id} value={w._id}>{w.work_order_number} ({w.customerDetails?.company_name})</option>
-                      ))}
+                      {workOrders
+                        .filter(w => w.status !== 'Draft')
+                        .filter(w => role === 'Admin' ? w.company_id === form.company_id : true)
+                        .map(w => (
+                          <option key={w._id} value={w._id}>{w.work_order_number} ({w.customerDetails?.company_name})</option>
+                        ))}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Customer*</label>
-                    <select required value={form.customer_id} onChange={(e) => setForm({ ...form, customer_id: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white">
+                    <select required value={form.customer_id} onChange={(e) => setForm({ ...form, customer_id: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white" disabled={role === 'Admin' && !form.company_id}>
                       <option value="">Select Customer</option>
-                      {customers.map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
+                      {customers
+                        .filter(c => role === 'Admin' ? c.company_id === form.company_id : true)
+                        .map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
                     </select>
                   </div>
                   <div>
@@ -495,12 +514,12 @@ const InvoiceManagement = () => {
                 <style>
                   {`
                     @media print {
-                      @page { margin: 10mm; size: A4; }
+                      @page { margin: 20mm 10mm 10mm 10mm; size: A4; }
                       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                     }
                   `}
                 </style>
-                <div ref={printRef} className="bg-white p-10 w-full max-w-[210mm] min-h-[297mm] shadow-lg text-black print:w-full print:max-w-full print:min-h-fit print:shadow-none print:p-0">
+                <div ref={printRef} className="bg-white p-10 w-full max-w-[210mm] min-h-[297mm] shadow-lg text-black print:w-full print:max-w-full print:min-h-fit print:shadow-none print:p-0 print:pt-4">
 
                   {/* Header */}
                   <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-6">

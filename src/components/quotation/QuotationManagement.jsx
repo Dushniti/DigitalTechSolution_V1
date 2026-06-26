@@ -44,7 +44,7 @@ const QuotationManagement = () => {
       const res = await fetch(`${config.apiUrl}/companies/${payload.companyId}`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) setCompanyDetails(data.data);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -71,7 +71,7 @@ const QuotationManagement = () => {
       const res = await fetch(`${config.apiUrl}/customers`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) setCustomers(data.data);
-    } catch {}
+    } catch { }
   };
 
   const fetchProducts = async () => {
@@ -79,7 +79,7 @@ const QuotationManagement = () => {
       const res = await fetch(`${config.apiUrl}/products`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) setProducts(data.data);
-    } catch {}
+    } catch { }
   };
 
   // Form Initial State
@@ -101,13 +101,13 @@ const QuotationManagement = () => {
   const calculateTotals = (items) => {
     let subtotal = 0;
     let tax_amount = 0;
-    
+
     items.forEach(item => {
       const lineTotal = item.quantity * item.unit_price;
       const discountVal = (lineTotal * (item.discount || 0)) / 100;
       const postDiscount = lineTotal - discountVal;
       const taxVal = (postDiscount * (item.tax || 0)) / 100;
-      
+
       subtotal += postDiscount;
       tax_amount += taxVal;
       item.amount = postDiscount + taxVal;
@@ -130,7 +130,7 @@ const QuotationManagement = () => {
   const handleItemChange = (index, field, value) => {
     const updated = [...form.items];
     updated[index][field] = value;
-    
+
     // Auto-fill price from product
     if (field === 'service_id' && value) {
       const product = products.find(p => p._id === value);
@@ -140,24 +140,24 @@ const QuotationManagement = () => {
         updated[index].tax = product.tax_rate || 0;
       }
     }
-    
+
     calculateTotals(updated);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.items.length === 0) return setError('Please add at least one item');
-    
+
     try {
       const url = editingId ? `${config.apiUrl}/quotations/${editingId}` : `${config.apiUrl}/quotations`;
       const method = editingId ? 'PUT' : 'POST';
-      
+
       const res = await fetch(url, {
         method,
         headers: getAuthHeaders(),
         body: JSON.stringify(form)
       });
-      
+
       const data = await res.json();
       if (data.success) {
         setShowForm(false);
@@ -187,7 +187,7 @@ const QuotationManagement = () => {
     try {
       await fetch(`${config.apiUrl}/quotations/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       fetchQuotations();
-    } catch {}
+    } catch { }
   };
 
   const handleStatusChange = async (id, status) => {
@@ -198,19 +198,19 @@ const QuotationManagement = () => {
         body: JSON.stringify({ status })
       });
       fetchQuotations();
-    } catch {}
+    } catch { }
   };
 
   // Printing logic
   const printRef = useRef();
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
     documentTitle: `Quotation_${viewingQuote?.quotation_number || 'Doc'}`
   });
 
   const filteredQuotes = quotations.filter(q => {
-    const matchesSearch = q.quotation_number?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          q.customerDetails?.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = q.quotation_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.customerDetails?.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus ? q.status === filterStatus : true;
     return matchesSearch && matchesStatus;
   });
@@ -290,8 +290,8 @@ const QuotationManagement = () => {
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold
                       ${quote.status === 'Approved' ? 'bg-green-100 text-green-700' :
                         quote.status === 'Sent' ? 'bg-blue-100 text-blue-700' :
-                        quote.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-gray-300'}`}>
+                          quote.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-gray-300'}`}>
                       {quote.status}
                     </span>
                   </td>
@@ -303,17 +303,17 @@ const QuotationManagement = () => {
                           <button onClick={() => handleStatusChange(quote._id, 'Rejected')} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Reject"><X size={16} /></button>
                         </>
                       )}
-                      
-                      <button onClick={() => { setViewingQuote(quote); setShowPrintModal(true); }} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg" title="Print/PDF"><Printer size={16}/></button>
-                      
+
+                      <button onClick={() => { setViewingQuote(quote); setShowPrintModal(true); }} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg" title="Print/PDF"><Printer size={16} /></button>
+
                       {quote.status !== 'Approved' && (
-                        <button onClick={() => { setForm(quote); setEditingId(quote._id); setShowForm(true); }} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg" title="Edit"><Edit size={16}/></button>
+                        <button onClick={() => { setForm(quote); setEditingId(quote._id); setShowForm(true); }} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg" title="Edit"><Edit size={16} /></button>
                       )}
-                      
-                      <button onClick={() => handleDuplicate(quote)} className="p-1.5 text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" title="Duplicate"><Copy size={16}/></button>
-                      
+
+                      <button onClick={() => handleDuplicate(quote)} className="p-1.5 text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg" title="Duplicate"><Copy size={16} /></button>
+
                       {(role === 'Admin' || role === 'Company Admin') && (
-                        <button onClick={() => handleDelete(quote._id)} className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 rounded-lg" title="Delete"><Trash2 size={16}/></button>
+                        <button onClick={() => handleDelete(quote._id)} className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-slate-800 rounded-lg" title="Delete"><Trash2 size={16} /></button>
                       )}
                     </div>
                   </td>
@@ -337,28 +337,28 @@ const QuotationManagement = () => {
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">{editingId ? 'Edit Quotation' : 'Create Quotation'}</h3>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600"><X size={24} /></button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Header Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Customer*</label>
-                  <select required value={form.customer_id} onChange={(e) => setForm({...form, customer_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white">
+                  <select required value={form.customer_id} onChange={(e) => setForm({ ...form, customer_id: e.target.value })} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white">
                     <option value="">Select Customer</option>
                     {customers.map(c => <option key={c._id} value={c._id}>{c.company_name || c.contact_person}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Quotation Number</label>
-                  <input type="text" value={form.quotation_number} onChange={(e) => setForm({...form, quotation_number: e.target.value})} placeholder="Auto-generated if empty" className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white" />
+                  <input type="text" value={form.quotation_number} onChange={(e) => setForm({ ...form, quotation_number: e.target.value })} placeholder="Auto-generated if empty" className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Date*</label>
-                  <input required type="date" value={form.quotation_date} onChange={(e) => setForm({...form, quotation_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white" />
+                  <input required type="date" value={form.quotation_date} onChange={(e) => setForm({ ...form, quotation_date: e.target.value })} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Valid Till</label>
-                  <input type="date" value={form.valid_till} onChange={(e) => setForm({...form, valid_till: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white" />
+                  <input type="date" value={form.valid_till} onChange={(e) => setForm({ ...form, valid_till: e.target.value })} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white" />
                 </div>
               </div>
 
@@ -421,14 +421,14 @@ const QuotationManagement = () => {
               {/* Notes */}
               <div>
                 <label className="block text-sm font-semibold mb-1.5 text-gray-700 dark:text-gray-300">Notes / Terms</label>
-                <textarea rows="3" value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white"></textarea>
+                <textarea rows="3" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl dark:text-white"></textarea>
               </div>
 
             </form>
-            
+
             <div className="p-6 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-3 bg-gray-50 dark:bg-slate-900 rounded-b-2xl">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-xl font-semibold text-gray-600 border border-gray-300 hover:bg-gray-100 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors">Cancel</button>
-              <button onClick={(e) => { setForm(prev => ({...prev, status: 'Sent'})); handleSubmit(e); }} className="px-4 py-2 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2"><Send size={16} /> Save & Send</button>
+              <button onClick={(e) => { setForm(prev => ({ ...prev, status: 'Sent' })); handleSubmit(e); }} className="px-4 py-2 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2"><Send size={16} /> Save & Send</button>
               <button onClick={handleSubmit} className="px-4 py-2 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">Save Quotation</button>
             </div>
           </motion.div>
@@ -443,14 +443,22 @@ const QuotationManagement = () => {
             <div className="flex justify-between items-center p-4 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shrink-0">
               <h3 className="font-bold text-gray-900 dark:text-white">Print / Download PDF</h3>
               <div className="flex items-center gap-3">
-                <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"><Printer size={16}/> Print Document</button>
-                <button onClick={() => setShowPrintModal(false)} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl"><X size={20}/></button>
+                <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"><Printer size={16} /> Print Document</button>
+                <button onClick={() => setShowPrintModal(false)} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl"><X size={20} /></button>
               </div>
             </div>
 
             {/* Printable Area Wrapper */}
-            <div className="flex-1 overflow-y-auto p-8">
-              <div ref={printRef} className="bg-white mx-auto shadow-sm p-10 max-w-[800px] text-gray-800 min-h-[1056px] relative" style={{ color: '#000' }}>
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center">
+              <style>
+                {`
+                  @media print {
+                    @page { margin: 20mm 10mm 10mm 10mm; size: A4; }
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                  }
+                `}
+              </style>
+              <div ref={printRef} className="bg-white p-6 md:p-10 w-full max-w-[210mm] min-h-[297mm] shadow-lg text-black print:w-full print:max-w-full print:min-h-fit print:shadow-none print:p-0 print:pt-4 flex flex-col relative" style={{ color: '#000' }}>
                 {/* Header */}
                 <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-8">
                   <div>
@@ -530,9 +538,11 @@ const QuotationManagement = () => {
                     <p className="text-sm text-gray-600 whitespace-pre-wrap">{viewingQuote.notes}</p>
                   </div>
                 )}
-                
-                <div className="absolute bottom-10 left-10 right-10 text-center text-xs text-gray-400 border-t border-gray-200 pt-4">
-                  This is a computer generated quotation.
+
+                <div className="mt-auto pt-8 pb-4 text-center text-xs text-gray-400">
+                  <div className="border-t border-gray-200 pt-4">
+                    This is a computer generated quotation.
+                  </div>
                 </div>
               </div>
             </div>

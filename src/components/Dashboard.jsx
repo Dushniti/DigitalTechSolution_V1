@@ -291,24 +291,24 @@ const CreateUserModal = ({ onClose, onCreated, currentUserRole }) => {
               {['user', 'employee', 'HR', 'Admin']
                 .filter(r => currentUserRole === 'Admin' || (r !== 'Admin' && r !== 'Company Admin'))
                 .map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${role === r
-                    ? r === 'Admin'
-                      ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
-                      : r === 'HR'
-                        ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-200'
-                        : r === 'employee'
-                          ? 'bg-green-600 border-green-600 text-white shadow-sm shadow-green-300'
-                          : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
-                    : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
-                    }`}
-                >
-                  {r === 'employee' ? 'Employee' : r === 'user' ? 'User' : r}
-                </button>
-              ))}
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${role === r
+                      ? r === 'Admin'
+                        ? 'bg-purple-600 border-purple-600 text-white shadow-sm shadow-purple-300'
+                        : r === 'HR'
+                          ? 'bg-amber-500 border-amber-500 text-white shadow-sm shadow-amber-200'
+                          : r === 'employee'
+                            ? 'bg-green-600 border-green-600 text-white shadow-sm shadow-green-300'
+                            : 'bg-blue-600 border-blue-600 text-white shadow-sm shadow-blue-300'
+                      : 'border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                      }`}
+                  >
+                    {r === 'employee' ? 'Employee' : r === 'user' ? 'User' : r}
+                  </button>
+                ))}
             </div>
           </div>
 
@@ -1436,7 +1436,7 @@ const Dashboard = () => {
     } catch (e) {
       // ignore
     }
-    
+
     if (companyId) {
       fetch(`${config.apiUrl}/companies/${companyId}`, { headers: authHeaders() })
         .then(res => res.json())
@@ -1481,9 +1481,9 @@ const Dashboard = () => {
     ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'users', label: 'Auth Users', icon: Users }] : []),
     ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'organization', label: 'Org & Staff', icon: Building }] : []),
     ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'hr-settings', label: 'HR Settings', icon: Settings }] : []),
-    ...(role === 'Admin' ? [{ 
-      id: 'saas-group', 
-      label: 'SaaS Admin', 
+    ...(role === 'Admin' ? [{
+      id: 'saas-group',
+      label: 'SaaS Admin',
       icon: Layers,
       subItems: [
         { id: 'plans', label: 'Subscription Plans' },
@@ -1491,9 +1491,9 @@ const Dashboard = () => {
         { id: 'announcements', label: 'Announcements' },
       ]
     }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ 
-      id: 'master-group', 
-      label: 'Master', 
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{
+      id: 'master-group',
+      label: 'Master',
       icon: Briefcase,
       subItems: [
         { id: 'master', label: 'Job Master' },
@@ -1509,9 +1509,9 @@ const Dashboard = () => {
     ...(role === 'Company Admin' ? [{ id: 'white-label', label: 'Branding', icon: Palette }] : []),
     ...(role === 'Company Admin' ? [{ id: 'api-keys', label: 'API Keys', icon: Key }] : []),
     ...(role === 'Company Admin' ? [{ id: 'announcements', label: 'Announcements', icon: Megaphone }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{ 
-      id: 'crm-group', 
-      label: 'CRM & Inventory', 
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{
+      id: 'crm-group',
+      label: 'CRM & Inventory',
       icon: Package,
       subItems: [
         { id: 'customers', label: 'Customers' },
@@ -1520,9 +1520,9 @@ const Dashboard = () => {
         { id: 'products', label: 'Products' }
       ]
     }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{ 
-      id: 'sales-ops-group', 
-      label: 'Sales & Ops', 
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{
+      id: 'sales-ops-group',
+      label: 'Sales & Ops',
       icon: Briefcase,
       subItems: [
         ...(role !== 'employee' ? [{ id: 'quotations', label: 'Quotations' }] : []),
@@ -1530,9 +1530,9 @@ const Dashboard = () => {
         ...(role === 'employee' ? [{ id: 'my-tasks', label: 'My Tasks' }] : [])
       ]
     }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{ 
-      id: 'finance-group', 
-      label: 'Finance', 
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{
+      id: 'finance-group',
+      label: 'Finance',
       icon: IndianRupee,
       subItems: [
         ...(role !== 'employee' ? [{ id: 'invoices', label: 'Invoices' }] : []),
@@ -1628,8 +1628,8 @@ const Dashboard = () => {
                           setIsMobileMenuOpen(false);
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === sub.id
-                            ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
-                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'
+                          ? 'text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
+                          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'
                           }`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${activeTab === sub.id ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
@@ -1729,7 +1729,7 @@ const Dashboard = () => {
             {activeTab === 'documents' && <DocumentModule />}
             {activeTab === 'reports' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <ReportsModule />}
             {activeTab === 'contacts' && <ContactsModule />}
-            
+
             {activeTab === 'customers' && <CustomerManagement />}
             {activeTab === 'vendors' && role !== 'employee' && <VendorManagement />}
             {activeTab === 'product-categories' && <ProductCategoryManagement />}
