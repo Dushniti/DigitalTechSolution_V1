@@ -27,14 +27,17 @@ const PaymentManagement = () => {
   const [payments, setPayments] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [customers, setCustomers] = useState([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [role, setRole] = useState(null);
-  
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyFilter, setSelectedCompanyFilter] = useState('');
+  const [companyProfile, setCompanyProfile] = useState(null);
+
   // PDF Printing states
   const [viewReceipt, setViewReceipt] = useState(null);
   const printRef = useRef();
@@ -53,26 +56,50 @@ const PaymentManagement = () => {
   useEffect(() => {
     const currentRole = getRoleFromToken();
     setRole(currentRole);
-    fetchData();
-  }, []);
 
-  const fetchData = async () => {
+    const token = localStorage.getItem('adminToken');
+    if (token && currentRole !== 'Admin') {
+      const payload = JSON.parse(atob(token.startsWith('Bearer ') ? token.split(' ')[1].split('.')[1] : token.split('.')[1]));
+      if (payload.companyId) {
+        fetch(`${config.apiUrl}/companies/${payload.companyId}`, { headers: getAuthHeaders() })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) setCompanyProfile(data.data);
+          });
+      }
+    }
+
+    fetchData(currentRole, selectedCompanyFilter);
+  }, [selectedCompanyFilter]);
+
+  const fetchData = async (currentRole = role, companyFilter = selectedCompanyFilter) => {
     setLoading(true);
     try {
-      const [payRes, invRes, custRes] = await Promise.all([
-        fetch(`${config.apiUrl}/payments`, { headers: getAuthHeaders() }),
-        fetch(`${config.apiUrl}/invoices`, { headers: getAuthHeaders() }),
-        fetch(`${config.apiUrl}/customers`, { headers: getAuthHeaders() })
-      ]);
+      const endpoints = [
+        fetch(`${config.apiUrl}/payments${companyFilter ? `?company_id=${companyFilter}` : ''}`, { headers: getAuthHeaders() }),
+        fetch(`${config.apiUrl}/invoices${companyFilter ? `?company_id=${companyFilter}` : ''}`, { headers: getAuthHeaders() }),
+        fetch(`${config.apiUrl}/customers${companyFilter ? `?company_id=${companyFilter}` : ''}`, { headers: getAuthHeaders() })
+      ];
 
-      const [payData, invData, custData] = await Promise.all([
-        payRes.json(), invRes.json(), custRes.json()
-      ]);
+      if (currentRole === 'Admin') {
+        endpoints.push(fetch(`${config.apiUrl}/companies`, { headers: getAuthHeaders() }));
+      }
+
+      const responses = await Promise.all(endpoints);
+
+      const payData = await responses[0].json();
+      const invData = await responses[1].json();
+      const custData = await responses[2].json();
 
       if (payData.success) setPayments(payData.data);
       // Filter out fully paid or cancelled invoices for the dropdown
       if (invData.success) setInvoices(invData.data.filter(i => !['Paid', 'Cancelled'].includes(i.status)));
       if (custData.success) setCustomers(custData.data);
+
+      if (currentRole === 'Admin' && responses[3]) {
+        const compData = await responses[3].json();
+        if (compData.success) setCompanies(compData.data);
+      }
 
     } catch {
       setError('Network error');
@@ -106,7 +133,7 @@ const PaymentManagement = () => {
         body: JSON.stringify(form)
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setShowModal(false);
         fetchData();
@@ -132,14 +159,14 @@ const PaymentManagement = () => {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `Receipt_${viewReceipt?.receiptDetails?.receipt_number}`,
+    contentRef: printRef,
+    documentTitle: `Receipt_${viewReceipt?.receiptDetails?.receipt_number || 'Payment'}`,
   });
 
   const canManage = role === 'Admin' || role === 'Company Admin' || role === 'User';
-  
-  const filteredPayments = payments.filter(p => 
-    p.payment_number?.toLowerCase().includes(search.toLowerCase()) || 
+
+  const filteredPayments = payments.filter(p =>
+    p.payment_number?.toLowerCase().includes(search.toLowerCase()) ||
     p.customerDetails?.company_name?.toLowerCase().includes(search.toLowerCase()) ||
     p.receiptDetails?.receipt_number?.toLowerCase().includes(search.toLowerCase())
   );
@@ -166,20 +193,36 @@ const PaymentManagement = () => {
 
       {/* Main Table */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
-          <div className="relative w-full max-w-md">
+        <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50 flex-wrap gap-4">
+          <div className="relative w-full max-w-md flex-1 min-w-[250px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search by Payment #, Receipt # or Customer..." 
+            <input
+              type="text"
+              placeholder="Search by Payment #, Receipt # or Customer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
-          <button onClick={fetchData} className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {role === 'Admin' && (
+              <select
+                value={selectedCompanyFilter}
+                onChange={(e) => setSelectedCompanyFilter(e.target.value)}
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto min-w-[200px]"
+              >
+                <option value="">My Data (Admin)</option>
+                <option value="all">All Companies</option>
+                {companies.map(c => (
+                  <option key={c._id} value={c._id}>{c.company_name}</option>
+                ))}
+              </select>
+            )}
+            <button onClick={() => fetchData()} className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors shrink-0">
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -238,10 +281,10 @@ const PaymentManagement = () => {
               </h3>
               <button onClick={() => setShowModal(false)} className="p-2 text-gray-400 hover:bg-gray-200 rounded-lg"><X size={20} /></button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto">
               <form id="paymentForm" onSubmit={handleSubmit} className="space-y-6">
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Payment #</label>
@@ -249,7 +292,7 @@ const PaymentManagement = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Date</label>
-                    <input type="date" required value={form.payment_date} onChange={(e) => setForm({...form, payment_date: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white" />
+                    <input type="date" required value={form.payment_date} onChange={(e) => setForm({ ...form, payment_date: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white" />
                   </div>
 
                   <div className="md:col-span-2">
@@ -264,7 +307,7 @@ const PaymentManagement = () => {
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-semibold mb-1.5">Customer*</label>
-                    <select required value={form.customer_id} onChange={(e) => setForm({...form, customer_id: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white" disabled={!!form.invoice_id}>
+                    <select required value={form.customer_id} onChange={(e) => setForm({ ...form, customer_id: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white" disabled={!!form.invoice_id}>
                       <option value="">Select Customer</option>
                       {customers.map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
                     </select>
@@ -272,7 +315,7 @@ const PaymentManagement = () => {
 
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Payment Method</label>
-                    <select value={form.payment_method} onChange={(e) => setForm({...form, payment_method: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white">
+                    <select value={form.payment_method} onChange={(e) => setForm({ ...form, payment_method: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white">
                       <option value="Bank Transfer">Bank Transfer</option>
                       <option value="UPI">UPI</option>
                       <option value="Cash">Cash</option>
@@ -281,23 +324,23 @@ const PaymentManagement = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">Transaction Ref / Cheque No.</label>
-                    <input value={form.transaction_reference} onChange={(e) => setForm({...form, transaction_reference: e.target.value})} className="w-full px-4 py-2 border rounded-xl bg-white" placeholder="e.g. UTR1234567" />
+                    <input value={form.transaction_reference} onChange={(e) => setForm({ ...form, transaction_reference: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white" placeholder="e.g. UTR1234567" />
                   </div>
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-semibold mb-1.5">Amount Received (₹)*</label>
-                    <input type="number" step="0.01" required min="1" value={form.amount} onChange={(e) => setForm({...form, amount: e.target.value})} className="w-full px-4 py-3 border-2 border-green-500 rounded-xl bg-green-50 font-black text-xl text-green-700" placeholder="0.00" />
+                    <input type="number" step="0.01" required min="1" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="w-full px-4 py-3 border-2 border-green-500 rounded-xl bg-green-50 font-black text-xl text-green-700" placeholder="0.00" />
                   </div>
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-semibold mb-1.5">Internal Notes</label>
-                    <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} className="w-full px-4 py-2 border rounded-xl" rows={2} />
+                    <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-4 py-2 border rounded-xl" rows={2} />
                   </div>
                 </div>
 
               </form>
             </div>
-            
+
             <div className="p-6 border-t border-gray-200 dark:border-slate-800 flex justify-end gap-3 bg-white dark:bg-slate-900">
               <button type="button" onClick={() => setShowModal(false)} className="px-6 py-2 rounded-xl border font-semibold text-gray-600 hover:bg-gray-50">Cancel</button>
               <button type="submit" form="paymentForm" disabled={formLoading} className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold flex items-center gap-2">
@@ -312,75 +355,104 @@ const PaymentManagement = () => {
       <AnimatePresence>
         {viewReceipt && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl w-full max-w-2xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden">
-              <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2"><FileText size={18}/> Receipt Preview</h3>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[95vh] flex flex-col shadow-2xl overflow-hidden">
+              <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
+                <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2"><FileText size={18} /> Receipt Preview</h3>
                 <div className="flex gap-2">
-                  <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold transition-colors"><Printer size={16}/> Print PDF</button>
-                  <button onClick={() => setViewReceipt(null)} className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg"><X size={20}/></button>
+                  <button onClick={() => handlePrint()} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold transition-colors"><Printer size={16} /> Print PDF</button>
+                  <button onClick={() => setViewReceipt(null)} className="p-2 text-gray-500 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-lg"><X size={20} /></button>
                 </div>
               </div>
-              
+
               {/* PRINTABLE AREA */}
-              <div className="overflow-y-auto p-8 bg-gray-100 flex justify-center">
-                <div ref={printRef} className="bg-white p-10 w-full max-w-[210mm] shadow-lg text-black print:shadow-none print:p-0">
-                  
+              <div className="overflow-y-auto p-4 md:p-8 bg-gray-100 dark:bg-slate-800 flex justify-center">
+                <style>
+                  {`
+                    @media print {
+                      @page { margin: 20mm 10mm 10mm 10mm; size: A4; }
+                      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                  `}
+                </style>
+                <div ref={printRef} className="bg-white p-6 md:p-10 w-full max-w-[210mm] min-h-[297mm] shadow-lg text-black print:w-full print:max-w-full print:min-h-fit print:shadow-none print:p-0 print:pt-4">
+
                   {/* Header */}
-                  <div className="flex justify-between items-start border-b-2 border-gray-200 pb-6 mb-6">
+                  <div className="flex flex-col sm:flex-row justify-between items-start border-b-2 border-gray-800 pb-6 mb-6 gap-4">
                     <div>
-                      <h1 className="text-4xl font-black text-green-700 tracking-tighter">PAYMENT RECEIPT</h1>
-                      <p className="text-gray-500 font-semibold mt-1">Receipt #: {viewReceipt.receiptDetails?.receipt_number}</p>
+                      <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tighter">PAYMENT RECEIPT</h1>
+                      <p className="text-gray-500 font-semibold mt-1">Receipt #: {viewReceipt.receiptDetails?.receipt_number || 'N/A'}</p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-black text-gray-900">Company Name</div>
-                      <div className="text-sm text-gray-600 mt-1">123 Tech Park, Sector 4<br/>Bangalore, IN 560001</div>
+                    <div className="sm:text-right">
+                      {(() => {
+                        const comp = viewReceipt?.companyDetails || (role === 'Admin' ? companies.find(c => c._id === viewReceipt?.company_id) : companyProfile) || {};
+                        return (
+                          <>
+                            <div className="text-xl sm:text-2xl font-black text-green-600">{comp.company_name || 'Company Name'}</div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              {comp.address || '123 Tech Park, Sector 4'}<br />
+                              {comp.city || 'City'}, {comp.state || 'State'} {comp.zip_code || '000000'}<br />
+                              {comp.tax_number ? `GST: ${comp.tax_number}` : ''}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
 
-                  <div className="mb-8">
-                    <p className="text-lg">Date: <strong>{new Date(viewReceipt.payment_date).toLocaleDateString()}</strong></p>
+                  <div className="flex justify-between mb-6 sm:mb-8 gap-8">
+                    <div className="flex-1">
+                      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Received From:</h3>
+                      <div className="font-bold text-lg text-gray-800">{viewReceipt.customerDetails?.company_name || 'N/A'}</div>
+                      <div className="text-sm text-gray-600 leading-relaxed">
+                        {viewReceipt.customerDetails?.email}<br />
+                        {viewReceipt.customerDetails?.phone}<br />
+                        GST: {viewReceipt.customerDetails?.tax_number || 'N/A'}
+                      </div>
+                    </div>
+                    <div className="flex-1 text-right">
+                      <div className="grid grid-cols-2 gap-2 text-sm justify-end w-full max-w-xs ml-auto">
+                        <div className="font-bold text-gray-500">Payment Date:</div>
+                        <div className="font-semibold">{new Date(viewReceipt.payment_date || new Date()).toLocaleDateString()}</div>
+                        <div className="font-bold text-gray-500">Method:</div>
+                        <div className="font-semibold">{viewReceipt.payment_method || 'N/A'}</div>
+                        <div className="font-bold text-gray-500">Reference:</div>
+                        <div className="font-semibold">{viewReceipt.transaction_reference || 'N/A'}</div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-8 text-center">
-                    <h2 className="text-gray-600 text-sm font-bold uppercase tracking-wider mb-2">Amount Received</h2>
-                    <div className="text-5xl font-black text-green-700">₹{viewReceipt.amount?.toFixed(2)}</div>
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 text-center">
+                    <h2 className="text-gray-600 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2">Amount Received</h2>
+                    <div className="text-4xl sm:text-5xl font-black text-green-700">₹{viewReceipt.amount?.toFixed(2)}</div>
                   </div>
 
                   {/* Info Table */}
-                  <table className="w-full text-left mb-12 border-collapse">
-                    <tbody>
-                      <tr className="border-b border-gray-200">
-                        <th className="py-3 font-bold text-gray-500 w-1/3">Received From:</th>
-                        <td className="py-3 font-semibold text-lg">{viewReceipt.customerDetails?.company_name}</td>
-                      </tr>
-                      <tr className="border-b border-gray-200">
-                        <th className="py-3 font-bold text-gray-500">Payment Method:</th>
-                        <td className="py-3">{viewReceipt.payment_method}</td>
-                      </tr>
-                      <tr className="border-b border-gray-200">
-                        <th className="py-3 font-bold text-gray-500">Transaction Ref:</th>
-                        <td className="py-3">{viewReceipt.transaction_reference || 'N/A'}</td>
-                      </tr>
-                      <tr className="border-b border-gray-200">
-                        <th className="py-3 font-bold text-gray-500">Applied to Invoice:</th>
-                        <td className="py-3">{viewReceipt.invoiceDetails?.invoice_number || 'Advance / General Payment'}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="overflow-x-auto w-full mb-8 sm:mb-12">
+                    <table className="w-full text-left border-collapse text-sm sm:text-base">
+                      <thead>
+                        <tr className="bg-gray-800 text-white text-xs uppercase tracking-wider">
+                          <th className="p-3">Payment Details</th>
+                          <th className="p-3 text-right">Applied To</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 border-b border-gray-200">
+                        <tr>
+                          <td className="p-3 text-sm font-medium">Payment towards services/invoices</td>
+                          <td className="p-3 text-sm text-right font-semibold">{viewReceipt?.invoiceDetails?.invoice_number || 'Advance / General Payment'}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
                   {/* Footer Notes */}
-                  <div className="mt-16 pt-8 border-t border-gray-200 text-center">
-                    <p className="text-gray-500 italic mb-12">Thank you for your business!</p>
-                    
-                    <div className="flex justify-between items-end mt-12 px-8">
-                      <div className="text-left">
-                        <div className="w-48 h-12 border-b-2 border-gray-300 mb-2"></div>
-                        <div className="font-bold text-gray-800 text-sm">Customer Signature</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="w-48 h-12 border-b-2 border-gray-300 mb-2"></div>
-                        <div className="font-bold text-gray-800 text-sm">Authorized Signature</div>
-                      </div>
+                  <div className="mt-auto grid grid-cols-2 gap-8 text-sm text-gray-600">
+                    <div>
+                      <h4 className="font-bold text-gray-800 mb-2">Notes</h4>
+                      <p className="whitespace-pre-line text-xs">Thank you for your business!</p>
+                    </div>
+                    <div className="text-right flex flex-col justify-end items-end">
+                      <div className="w-48 h-16 border-b-2 border-gray-300 mb-2"></div>
+                      <div className="font-bold text-gray-800">Authorized Signature</div>
                     </div>
                   </div>
 
