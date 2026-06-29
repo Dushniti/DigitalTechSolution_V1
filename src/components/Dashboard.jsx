@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase, ChevronDown, Package, Layers, CreditCard, Palette, Key, Megaphone
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase, ChevronDown, Package, Layers, CreditCard, Palette, Key, Megaphone, MapPin
 } from 'lucide-react';
 import config from '../config';
 
@@ -56,6 +56,8 @@ import WhiteLabelSettings from './saas/WhiteLabelSettings';
 import ApiManagement from './saas/ApiManagement';
 import Announcements from './saas/Announcements';
 import BranchManagement from './branches/BranchManagement';
+import OfficeLocationManagement from './geofence/OfficeLocationManagement';
+import GeoAttendanceReport from './geofence/GeoAttendanceReport';
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
@@ -955,23 +957,93 @@ const AttendanceModule = () => {
     return () => clearTimeout(timer);
   }, [filterDate, filterEmail]);
 
-  const handleClockAction = async (action) => { // 'login' or 'logout'
+  // ─── Geo-Fencing punch handler ────────────────────────────────────────────────
+  /**
+   * Requests browser GPS, then sends coords to the server for Haversine validation.
+   * Falls back gracefully for any geolocation errors so the UI always communicates clearly.
+   * @param {'login'|'logout'} action
+   */
+  const handleClockAction = async (action) => {
     setClockLoading(true);
+    setError('');
+
+    // Step 1: Check if Geolocation API is available
+    if (!navigator.geolocation) {
+      setError('Location services are not supported by your browser. Please use a modern browser.');
+      setClockLoading(false);
+      return;
+    }
+
+    // Step 2: Request GPS position from the browser
+    const getPosition = () =>
+      new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,        // 15 s before giving up
+          maximumAge: 0,          // always fresh position, no cache
+        });
+      });
+
+    let latitude = undefined;
+    let longitude = undefined;
+    let geoError = null;
+
+    try {
+      const pos = await getPosition();
+      latitude = pos.coords.latitude;
+      longitude = pos.coords.longitude;
+    } catch (geoErr) {
+      // Map GeolocationPositionError codes to user-friendly messages
+      switch (geoErr.code) {
+        case 1: // PERMISSION_DENIED
+          geoError = 'Location permission denied. Please allow location access in your browser settings and try again.';
+          break;
+        case 2: // POSITION_UNAVAILABLE
+          geoError = 'Your GPS location is currently unavailable. Please ensure GPS is enabled and try again.';
+          break;
+        case 3: // TIMEOUT
+          geoError = 'GPS response timed out. Please move to an open area with better signal and try again.';
+          break;
+        default:
+          geoError = 'Could not determine your location. Please try again.';
+      }
+    }
+
+    if (geoError) {
+      setError(geoError);
+      setClockLoading(false);
+      return;
+    }
+
+    // Step 3: Send punch request with geo coords to server
     try {
       const res = await fetch(`${config.apiUrl}/attendance/${action}`, {
         method: 'POST',
-        headers: authHeaders()
+        headers: authHeaders(),
+        body: JSON.stringify({
+          latitude,
+          longitude,
+          browser: navigator.userAgent,
+          device: navigator.platform || 'Unknown',
+        }),
       });
       const data = await res.json();
+
       if (data.success) {
-        showToast(data.message);
+        // Build success message with optional geo context
+        let msg = data.message;
+        if (data.geoData?.distanceFromOffice != null) {
+          msg += ` (${Math.round(data.geoData.distanceFromOffice)}m from ${data.geoData.officeName || 'office'})`;
+        }
+        showToast(msg);
         checkTodayStatus();
         fetchAttendance();
       } else {
+        // geoBlocked = outside radius message from server
         setError(data.message || `Failed to punch ${action === 'login' ? 'in' : 'out'}.`);
       }
     } catch {
-      setError('Network error.');
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setClockLoading(false);
     }
@@ -1063,12 +1135,30 @@ const AttendanceModule = () => {
           {currentUserRole !== 'Admin' && (
             <div className="flex gap-2">
               {!todayStatus ? (
-                <button onClick={() => handleClockAction('login')} disabled={clockLoading} className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all">
-                  <Clock size={14} /> Punch In
+                <button
+                  onClick={() => handleClockAction('login')}
+                  disabled={clockLoading}
+                  title="Your location will be captured for geo-fencing validation"
+                  className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all disabled:opacity-70"
+                >
+                  {clockLoading ? (
+                    <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Locating…</>
+                  ) : (
+                    <><Clock size={14} /> Punch In</>
+                  )}
                 </button>
               ) : !todayStatus.punchOutTime ? (
-                <button onClick={() => handleClockAction('logout')} disabled={clockLoading} className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-red-500 text-white shadow-sm transition-all">
-                  <Clock size={14} /> Punch Out
+                <button
+                  onClick={() => handleClockAction('logout')}
+                  disabled={clockLoading}
+                  title="Your location will be captured for geo-fencing validation"
+                  className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-red-500 text-white shadow-sm transition-all disabled:opacity-70"
+                >
+                  {clockLoading ? (
+                    <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Locating…</>
+                  ) : (
+                    <><Clock size={14} /> Punch Out</>
+                  )}
                 </button>
               ) : (
                 <span className="px-4 py-1.5 text-xs font-bold rounded-xl bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-400">
@@ -1504,10 +1594,12 @@ const Dashboard = () => {
     { id: 'documents', label: 'Documents', icon: FileText },
     { id: 'settings', label: 'Settings', icon: Settings },
     ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'geo-reports', label: 'Geo Reports', icon: MapPin }] : []),
     ...(role !== 'employee' ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
     ...(role === 'Company Admin' ? [{ id: 'billing', label: 'Billing & Plan', icon: CreditCard }] : []),
     ...(role === 'Company Admin' ? [{ id: 'white-label', label: 'Branding', icon: Palette }] : []),
     ...(role === 'Company Admin' ? [{ id: 'api-keys', label: 'API Keys', icon: Key }] : []),
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'office-locations', label: 'Office Locations', icon: MapPin }] : []),
     ...(role === 'Company Admin' ? [{ id: 'announcements', label: 'Announcements', icon: Megaphone }] : []),
     ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{
       id: 'crm-group',
@@ -1751,6 +1843,9 @@ const Dashboard = () => {
             {activeTab === 'white-label' && role === 'Company Admin' && <WhiteLabelSettings />}
             {activeTab === 'api-keys' && role === 'Company Admin' && <ApiManagement />}
             {activeTab === 'announcements' && (role === 'Company Admin' || role === 'Admin') && <Announcements />}
+            {/* ── Geo-Fencing: Location-Based Attendance ── */}
+            {activeTab === 'office-locations' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <OfficeLocationManagement />}
+            {activeTab === 'geo-reports' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <GeoAttendanceReport />}
           </motion.div>
         </AnimatePresence>
       </main>
