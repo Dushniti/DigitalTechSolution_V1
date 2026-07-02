@@ -12,6 +12,7 @@ const QuotationManagement = () => {
   const [error, setError] = useState('');
   const [role, setRole] = useState(null);
   const [companyDetails, setCompanyDetails] = useState(null);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', message: '' }
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -144,24 +145,36 @@ const QuotationManagement = () => {
     calculateTotals(updated);
   };
 
-  const handleSubmit = async (e) => {
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleSubmit = async (e, sendEmail = false) => {
     e.preventDefault();
     if (form.items.length === 0) return setError('Please add at least one item');
 
     try {
+      const payload = sendEmail
+        ? { ...form, status: 'Sent', sendEmail: true }
+        : { ...form };
+
       const url = editingId ? `${config.apiUrl}/quotations/${editingId}` : `${config.apiUrl}/quotations`;
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
         headers: getAuthHeaders(),
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
       if (data.success) {
         setShowForm(false);
         fetchQuotations();
+        if (sendEmail) {
+          showToast('success', '✅ Quotation saved and email sent to customer successfully!');
+        }
       } else {
         setError(data.message || 'Action failed');
       }
@@ -217,6 +230,21 @@ const QuotationManagement = () => {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className={`fixed top-6 right-6 z-[200] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-white text-sm font-semibold
+              ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}
+          >
+            {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            {toast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Quotations</h2>
@@ -428,8 +456,20 @@ const QuotationManagement = () => {
 
             <div className="p-6 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-3 bg-gray-50 dark:bg-slate-900 rounded-b-2xl">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-xl font-semibold text-gray-600 border border-gray-300 hover:bg-gray-100 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors">Cancel</button>
-              <button onClick={(e) => { setForm(prev => ({ ...prev, status: 'Sent' })); handleSubmit(e); }} className="px-4 py-2 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2"><Send size={16} /> Save & Send</button>
-              <button onClick={handleSubmit} className="px-4 py-2 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors">Save Quotation</button>
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, true)}
+                className="px-4 py-2 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <Send size={16} /> Save &amp; Send
+              </button>
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, false)}
+                className="px-4 py-2 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+              >
+                Save Quotation
+              </button>
             </div>
           </motion.div>
         </div>
