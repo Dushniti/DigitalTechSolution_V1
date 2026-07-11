@@ -112,18 +112,24 @@ const RegularizationModule = () => {
               <thead>
                 <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">User</th>}
+                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>}
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Requested Times</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Reason</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>}
+                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                 {requests.map((r) => (
                   <tr key={r._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
                     <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{r.date}</td>
-                    {currentUserRole === 'Admin' && <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{r.email}</td>}
+                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{r.employeeName || r.email}</div>
+                        {r.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{r.employeeCode} • {r.email}</div>}
+                        {!r.employeeCode && r.employeeName && <div className="text-xs text-gray-500 mt-0.5">{r.email}</div>}
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
                       In: {new Date(r.punchInTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} <br/>
                       Out: {new Date(r.punchOutTime).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
@@ -138,7 +144,7 @@ const RegularizationModule = () => {
                         {r.status}
                       </span>
                     </td>
-                    {currentUserRole === 'Admin' && (
+                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
                       <td className="px-6 py-4">
                         {r.status === 'Pending' && (
                           <div className="flex items-center justify-end gap-2">

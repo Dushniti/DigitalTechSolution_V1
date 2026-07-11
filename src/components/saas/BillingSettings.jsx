@@ -31,8 +31,8 @@ const BillingSettings = () => {
       const plansData = await plansRes.json();
 
       if (subData.success) {
-        // Find the first subscription since we are Company Admin viewing our own
-        setSubscription(subData.data[0]); 
+        // subData.data is the subscription object directly
+        setSubscription(subData.data); 
       }
       
       if (plansData.success) {
@@ -102,7 +102,7 @@ const BillingSettings = () => {
       {/* Current Subscription */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Current Plan: {subscription?.planDetails?.name || 'N/A'}</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Current Plan: {subscription?.plan_name || 'N/A'}</h3>
           <p className="text-gray-600 dark:text-gray-400 mb-1">Status: <span className="font-semibold text-blue-600">{subscription?.status}</span></p>
           <p className="text-sm text-gray-500">Expires on: {subscription?.expiry_date ? new Date(subscription.expiry_date).toLocaleDateString() : 'N/A'}</p>
         </div>

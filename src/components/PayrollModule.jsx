@@ -770,7 +770,7 @@ const SalarySlipPrint = ({ slip }) => {
   const { employeeName, department, designation, month, year, email,
           salaryComponents: sc, deductions: ded, attendanceSummary: att,
           grossSalary, totalDeductions, netSalary, paymentStatus,
-          paymentDate, transactionId, userInfo, salaryStructure: ss } = slip;
+          paymentDate, transactionId, userInfo, salaryStructure: ss, companyInfo } = slip;
 
   const monthName = MONTHS[(month || 1) - 1];
   const earnings = [
@@ -792,27 +792,49 @@ const SalarySlipPrint = ({ slip }) => {
     { label: 'Other Deductions', value: ded?.otherDeductions },
   ].filter(d => d.value > 0);
 
+  const companyName = companyInfo?.company_name || 'Digital Tech Solution';
+  const companyLogo = companyInfo?.logo;
+
   return (
-    <div id="salary-slip-print-area" className="bg-white text-gray-900 rounded-2xl border border-gray-200 shadow-sm p-8 max-w-2xl mx-auto font-sans">
+    <div id="salary-slip-print-area" className="bg-white text-gray-900 rounded-2xl border border-gray-200 shadow-sm p-8 max-w-3xl mx-auto font-sans relative overflow-hidden">
+      {/* Decorative top border */}
+      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-cyan-500" />
+
       {/* Company Header */}
-      <div className="text-center mb-6 pb-5 border-b-2 border-blue-600">
-        <h1 className="text-2xl font-extrabold text-blue-700">Digital Tech Solution</h1>
-        <p className="text-sm text-gray-500 mt-1">SALARY SLIP — {monthName.toUpperCase()} {year}</p>
+      <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-gray-100">
+        <div className="flex items-center gap-5">
+          {companyLogo ? (
+            <img src={companyLogo} alt={companyName} className="h-16 w-auto object-contain rounded-lg" />
+          ) : (
+            <div className="h-14 w-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-200">
+              {companyName.substring(0, 2).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{companyName}</h1>
+            <p className="text-sm text-gray-500 mt-1 font-semibold uppercase tracking-widest text-blue-600">Payslip for {monthName} {year}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-gray-50 text-gray-500 font-bold border border-gray-200 uppercase tracking-widest text-xs shadow-sm">
+            CONFIDENTIAL
+          </div>
+        </div>
       </div>
 
       {/* Employee Info */}
-      <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-        <div>
-          <p><span className="font-semibold text-gray-600">Employee Name:</span> {employeeName}</p>
-          <p><span className="font-semibold text-gray-600">Email:</span> {email}</p>
-          <p><span className="font-semibold text-gray-600">Department:</span> {department}</p>
-          <p><span className="font-semibold text-gray-600">Designation:</span> {designation}</p>
+      <div className="grid grid-cols-2 gap-6 mb-8 bg-gray-50/50 p-5 rounded-xl border border-gray-100">
+        <div className="space-y-2">
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Employee Name</span> <span className="font-bold text-gray-800">{employeeName}</span></p>
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Employee ID</span> <span className="font-medium text-gray-700">{userInfo?.employeeCode || 'N/A'}</span></p>
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Department</span> <span className="font-medium text-gray-700">{department || 'N/A'}</span></p>
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Designation</span> <span className="font-medium text-gray-700">{designation || 'N/A'}</span></p>
         </div>
-        <div>
-          <p><span className="font-semibold text-gray-600">Employee Code:</span> {userInfo?.employeeCode || 'N/A'}</p>
-          <p><span className="font-semibold text-gray-600">Joining Date:</span> {userInfo?.joiningDate || 'N/A'}</p>
-          <p><span className="font-semibold text-gray-600">Bank:</span> {ss?.bankName || 'N/A'}</p>
-          <p><span className="font-semibold text-gray-600">A/C No:</span> {ss?.accountNumber || 'N/A'}</p>
+        <div className="space-y-2">
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Email</span> <span className="font-medium text-gray-700">{email}</span></p>
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Joining Date</span> <span className="font-medium text-gray-700">{userInfo?.joiningDate || 'N/A'}</span></p>
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Bank Name</span> <span className="font-medium text-gray-700">{ss?.bankName || 'N/A'}</span></p>
+          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Account No</span> <span className="font-medium text-gray-700">{ss?.accountNumber || 'N/A'}</span></p>
         </div>
       </div>
 
@@ -926,25 +948,42 @@ const SlipsTab = () => {
     if (!printContent) return;
     const win = window.open('', '_blank');
     win.document.write(`
-      <html><head><title>Salary Slip</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; color: #111; }
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 6px 4px; font-size: 13px; }
-        .net-box { background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; }
-        .att-box { background: #f9fafb; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
-        .att-grid { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; gap: 8px; }
-        h1 { color: #1d4ed8; }
-        .section-title { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-        .earn-title { color: #059669; }
-        .ded-title { color: #dc2626; }
-        hr { border: none; border-top: 1px solid #e5e7eb; margin: 8px 0; }
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .total-row td { font-weight: bold; border-top: 2px solid #e5e7eb; padding-top: 8px; }
-      </style></head><body>${printContent.innerHTML}</body></html>`);
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Salary Slip</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            @page { margin: 1cm; }
+            body { 
+              font-family: 'Inter', system-ui, sans-serif; 
+              margin: 0; 
+              padding: 20px; 
+              background: white; 
+              -webkit-print-color-adjust: exact !important; 
+              print-color-adjust: exact !important; 
+            }
+            #salary-slip-print-area {
+              box-shadow: none !important;
+              border: 1px solid #e5e7eb !important;
+              max-width: 100% !important;
+            }
+          </style>
+        </head>
+        <body>
+          ${printContent.outerHTML}
+          <script>
+            // Wait for Tailwind to process classes
+            setTimeout(() => {
+              window.print();
+              window.close();
+            }, 1200);
+          </script>
+        </body>
+      </html>
+    `);
     win.document.close();
     win.focus();
-    setTimeout(() => { win.print(); win.close(); }, 500);
   };
 
   const filtered = records.filter(r =>

@@ -1098,7 +1098,7 @@ const AttendanceModule = () => {
               onChange={(e) => setFilterDate(e.target.value)}
               className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer w-[110px] p-1"
             />
-            {currentUserRole === 'Admin' && (
+            {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
               <>
                 <div className="w-px h-4 bg-gray-200 dark:bg-slate-700 mx-1"></div>
                 <input
@@ -1190,7 +1190,7 @@ const AttendanceModule = () => {
               <thead>
                 <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">User</th>}
+                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>}
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch In</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch Out</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
@@ -1200,7 +1200,13 @@ const AttendanceModule = () => {
                 {records.map((r) => (
                   <tr key={r._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
                     <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{r.date}</td>
-                    {currentUserRole === 'Admin' && <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{r.email}</td>}
+                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{r.employeeName || r.email}</div>
+                        {r.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{r.employeeCode} • {r.email}</div>}
+                        {!r.employeeCode && r.employeeName && <div className="text-xs text-gray-500 mt-0.5">{r.email}</div>}
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
                       {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                     </td>
@@ -1457,18 +1463,24 @@ const LeavesModule = () => {
               <thead>
                 <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
-                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">User</th>}
+                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>}
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Duration</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Reason</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                  {currentUserRole === 'Admin' && <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>}
+                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                 {leaves.map((l, i) => (
                   <tr key={l._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
                     <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{l.type}</td>
-                    {currentUserRole === 'Admin' && <td className="px-6 py-4 text-gray-600 dark:text-gray-400">{l.email}</td>}
+                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{l.employeeName || l.email}</div>
+                        {l.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{l.employeeCode} • {l.email}</div>}
+                        {!l.employeeCode && l.employeeName && <div className="text-xs text-gray-500 mt-0.5">{l.email}</div>}
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{l.startDate} to {l.endDate}</td>
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400 truncate max-w-[150px]" title={l.reason}>{l.reason}</td>
                     <td className="px-6 py-4">
@@ -1478,7 +1490,7 @@ const LeavesModule = () => {
                         {l.status}
                       </span>
                     </td>
-                    {currentUserRole === 'Admin' && (
+                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
                       <td className="px-6 py-4 text-right">
                         {l.status === 'Pending' && (
                           <div className="flex justify-end gap-2">
@@ -1601,7 +1613,7 @@ const Dashboard = () => {
     ...(role === 'Company Admin' ? [{ id: 'api-keys', label: 'API Keys', icon: Key }] : []),
     ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'office-locations', label: 'Office Locations', icon: MapPin }] : []),
     ...(role === 'Company Admin' ? [{ id: 'announcements', label: 'Announcements', icon: Megaphone }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' ? [{
       id: 'crm-group',
       label: 'CRM & Inventory',
       icon: Package,
@@ -1622,7 +1634,7 @@ const Dashboard = () => {
         ...(role === 'employee' ? [{ id: 'my-tasks', label: 'My Tasks' }] : [])
       ]
     }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{
+    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' ? [{
       id: 'finance-group',
       label: 'Finance',
       icon: IndianRupee,
