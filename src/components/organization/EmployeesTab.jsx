@@ -3,6 +3,16 @@ import { Plus, Edit2, Trash2, AlertCircle, RefreshCw, Mail, Phone, Eye, EyeOff, 
 import config from '../../config';
 
 const getToken = () => localStorage.getItem('adminToken');
+const decodeToken = (token) => {
+  if (!token) return null;
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+};
+// Role is decoded inside the component now
+
 const authHeaders = () => ({
   'Content-Type': 'application/json',
   Authorization: getToken() || '',
@@ -23,9 +33,16 @@ const getPasswordStrength = (pwd) => {
 };
 
 const EmployeesTab = () => {
+  const userRole = decodeToken(getToken())?.role;
+  const isAdmin = userRole === 'Admin';
+  
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+  const [companySearchOpen, setCompanySearchOpen] = useState(false);
+  const [companySearchText, setCompanySearchText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -49,18 +66,32 @@ const EmployeesTab = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [empRes, deptRes, desigRes] = await Promise.all([
-        fetch(`${config.apiUrl}/employees`, { headers: authHeaders() }),
-        fetch(`${config.apiUrl}/departments`, { headers: authHeaders() }),
-        fetch(`${config.apiUrl}/designations`, { headers: authHeaders() }),
-      ]);
-      const empData = await empRes.json();
-      const deptData = await deptRes.json();
-      const desigData = await desigRes.json();
+      const q = selectedCompanyId ? `?companyId=${selectedCompanyId}` : '';
+      
+      const reqs = [
+        fetch(`${config.apiUrl}/employees${q}`, { headers: authHeaders() }),
+        fetch(`${config.apiUrl}/departments${q}`, { headers: authHeaders() }),
+        fetch(`${config.apiUrl}/designations${q}`, { headers: authHeaders() }),
+      ];
+
+      if (isAdmin && companies.length === 0) {
+        reqs.push(fetch(`${config.apiUrl}/companies`, { headers: authHeaders() }));
+      }
+
+      const results = await Promise.all(reqs);
+      
+      const empData = await results[0].json();
+      const deptData = await results[1].json();
+      const desigData = await results[2].json();
 
       if (empData.success) setEmployees(empData.employees || []);
       if (deptData.success) setDepartments(deptData.data || []);
       if (desigData.success) setDesignations(desigData.data || []);
+
+      if (isAdmin && companies.length === 0 && results[3]) {
+        const compData = await results[3].json();
+        if (compData.success) setCompanies(compData.data || []);
+      }
     } catch (err) {
       setError('Network error loading data');
     } finally {
@@ -68,7 +99,7 @@ const EmployeesTab = () => {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [selectedCompanyId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -182,7 +213,65 @@ const EmployeesTab = () => {
       )}
 
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Employees Directory</h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Employees Directory</h3>
+          {isAdmin && (
+            <div className="relative">
+              <div 
+                className="flex items-center justify-between px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 cursor-pointer min-w-[200px]"
+                onClick={() => setCompanySearchOpen(!companySearchOpen)}
+              >
+                <span className="truncate pr-4 font-medium text-blue-600 dark:text-blue-400">
+                  {selectedCompanyId ? companies.find(c => c._id === selectedCompanyId)?.company_name : 'All Companies'}
+                </span>
+                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+              
+              {companySearchOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => { setCompanySearchOpen(false); setCompanySearchText(''); }} />
+                  <div className="absolute top-full left-0 mt-1 w-full min-w-[250px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-20 py-1 custom-scrollbar">
+                    <div className="sticky top-0 bg-white dark:bg-slate-800 p-2 border-b border-gray-100 dark:border-slate-700 z-10">
+                      <input 
+                        autoFocus
+                        type="text"
+                        placeholder="Search companies..."
+                        value={companySearchText}
+                        onChange={(e) => setCompanySearchText(e.target.value)}
+                        className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-blue-500 transition-shadow"
+                      />
+                    </div>
+                    <div 
+                      className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700/50 transition-colors ${!selectedCompanyId ? 'bg-blue-50/50 dark:bg-slate-700/30 text-blue-700 dark:text-blue-400 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
+                      onClick={() => {
+                        setSelectedCompanyId('');
+                        setCompanySearchOpen(false);
+                        setCompanySearchText('');
+                      }}
+                    >
+                      All Companies
+                    </div>
+                    {companies
+                      .filter(c => c.company_name.toLowerCase().includes(companySearchText.toLowerCase()))
+                      .map(c => (
+                        <div 
+                          key={c._id}
+                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700/50 transition-colors ${selectedCompanyId === c._id ? 'bg-blue-50/50 dark:bg-slate-700/30 text-blue-700 dark:text-blue-400 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
+                          onClick={() => {
+                            setSelectedCompanyId(c._id);
+                            setCompanySearchOpen(false);
+                            setCompanySearchText('');
+                          }}
+                        >
+                          {c.company_name}
+                        </div>
+                      ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex gap-2">
           <button onClick={fetchData} className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800">
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
