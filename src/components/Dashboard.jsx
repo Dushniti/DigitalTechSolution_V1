@@ -1598,7 +1598,7 @@ const Dashboard = () => {
       label: 'Master',
       icon: Briefcase,
       subItems: [
-        { id: 'master', label: 'Job Master' },
+        ...(role === 'Admin' ? [{ id: 'master', label: 'Job Master' }] : []),
         ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'branches', label: 'Branches' }] : []),
         ...(role === 'Admin' ? [{ id: 'company-master', label: 'Company Master' }] : []),
       ]
@@ -1607,7 +1607,7 @@ const Dashboard = () => {
     { id: 'settings', label: 'Settings', icon: Settings },
     ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
     ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'geo-reports', label: 'Geo Reports', icon: MapPin }] : []),
-    ...(role !== 'employee' ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
+    ...(role === 'Admin' ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
     ...(role === 'Company Admin' ? [{ id: 'billing', label: 'Billing & Plan', icon: CreditCard }] : []),
     ...(role === 'Company Admin' ? [{ id: 'white-label', label: 'Branding', icon: Palette }] : []),
     ...(role === 'Company Admin' ? [{ id: 'api-keys', label: 'API Keys', icon: Key }] : []),
