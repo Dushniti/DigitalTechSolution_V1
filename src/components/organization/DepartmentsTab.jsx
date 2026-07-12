@@ -3,16 +3,31 @@ import { Plus, Edit2, Trash2, AlertCircle, RefreshCw } from 'lucide-react';
 import config from '../../config';
 
 const getToken = () => localStorage.getItem('adminToken');
+const decodeToken = (token) => {
+  if (!token) return null;
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+};
 const authHeaders = () => ({
   'Content-Type': 'application/json',
   Authorization: getToken() || '',
 });
 
 const DepartmentsTab = () => {
+  const userRole = decodeToken(getToken())?.role;
+  const isAdmin = userRole === 'Admin';
+
   const [departments, setDepartments] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+  const [companySearchOpen, setCompanySearchOpen] = useState(false);
+  const [companySearchText, setCompanySearchText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [showModal, setShowModal] = useState(false);
   const [editingDept, setEditingDept] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '' });
@@ -20,10 +35,26 @@ const DepartmentsTab = () => {
   const fetchDepartments = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${config.apiUrl}/departments`, { headers: authHeaders() });
-      const data = await res.json();
+      const q = selectedCompanyId ? `?companyId=${selectedCompanyId}` : '';
+      
+      const reqs = [
+        fetch(`${config.apiUrl}/departments${q}`, { headers: authHeaders() })
+      ];
+
+      if (isAdmin && companies.length === 0) {
+        reqs.push(fetch(`${config.apiUrl}/companies`, { headers: authHeaders() }));
+      }
+
+      const results = await Promise.all(reqs);
+      const data = await results[0].json();
+      
       if (data.success) setDepartments(data.data);
       else setError(data.message || 'Failed to fetch departments');
+
+      if (isAdmin && companies.length === 0 && results[1]) {
+        const compData = await results[1].json();
+        if (compData.success) setCompanies(compData.data || []);
+      }
     } catch (err) {
       setError('Network error');
     } finally {
@@ -33,23 +64,23 @@ const DepartmentsTab = () => {
 
   useEffect(() => {
     fetchDepartments();
-  }, []);
+  }, [selectedCompanyId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const method = editingDept ? 'PUT' : 'POST';
-      const url = editingDept 
-        ? `${config.apiUrl}/departments/${editingDept._id}` 
+      const url = editingDept
+        ? `${config.apiUrl}/departments/${editingDept._id}`
         : `${config.apiUrl}/departments`;
-        
+
       const res = await fetch(url, {
         method,
         headers: authHeaders(),
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setShowModal(false);
         fetchDepartments();
@@ -85,7 +116,65 @@ const DepartmentsTab = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Departments</h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">Departments</h3>
+          {isAdmin && (
+            <div className="relative">
+              <div 
+                className="flex items-center justify-between px-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 cursor-pointer min-w-[200px]"
+                onClick={() => setCompanySearchOpen(!companySearchOpen)}
+              >
+                <span className="truncate pr-4 font-medium text-blue-600 dark:text-blue-400">
+                  {selectedCompanyId ? companies.find(c => c._id === selectedCompanyId)?.company_name : 'All Companies'}
+                </span>
+                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+              
+              {companySearchOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => { setCompanySearchOpen(false); setCompanySearchText(''); }} />
+                  <div className="absolute top-full left-0 mt-1 w-full min-w-[250px] max-h-[300px] overflow-y-auto bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-xl z-20 py-1 custom-scrollbar">
+                    <div className="sticky top-0 bg-white dark:bg-slate-800 p-2 border-b border-gray-100 dark:border-slate-700 z-10">
+                      <input 
+                        autoFocus
+                        type="text"
+                        placeholder="Search companies..."
+                        value={companySearchText}
+                        onChange={(e) => setCompanySearchText(e.target.value)}
+                        className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 text-gray-700 dark:text-gray-300 outline-none focus:ring-1 focus:ring-blue-500 transition-shadow"
+                      />
+                    </div>
+                    <div 
+                      className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700/50 transition-colors ${!selectedCompanyId ? 'bg-blue-50/50 dark:bg-slate-700/30 text-blue-700 dark:text-blue-400 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
+                      onClick={() => {
+                        setSelectedCompanyId('');
+                        setCompanySearchOpen(false);
+                        setCompanySearchText('');
+                      }}
+                    >
+                      All Companies
+                    </div>
+                    {companies
+                      .filter(c => c.company_name.toLowerCase().includes(companySearchText.toLowerCase()))
+                      .map(c => (
+                        <div 
+                          key={c._id}
+                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700/50 transition-colors ${selectedCompanyId === c._id ? 'bg-blue-50/50 dark:bg-slate-700/30 text-blue-700 dark:text-blue-400 font-semibold' : 'text-gray-700 dark:text-gray-300'}`}
+                          onClick={() => {
+                            setSelectedCompanyId(c._id);
+                            setCompanySearchOpen(false);
+                            setCompanySearchText('');
+                          }}
+                        >
+                          {c.company_name}
+                        </div>
+                      ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex gap-2">
           <button onClick={fetchDepartments} className="p-2 rounded-lg border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800">
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -96,7 +185,7 @@ const DepartmentsTab = () => {
         </div>
       </div>
 
-      {error && <div className="mb-4 text-sm text-red-600 flex items-center gap-2"><AlertCircle size={16}/> {error}</div>}
+      {error && <div className="mb-4 text-sm text-red-600 flex items-center gap-2"><AlertCircle size={16} /> {error}</div>}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
@@ -135,11 +224,11 @@ const DepartmentsTab = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Name</label>
-                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-transparent" />
+                <input required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-transparent" />
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-transparent" rows={3}></textarea>
+                <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-transparent" rows={3}></textarea>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-semibold text-gray-600">Cancel</button>
