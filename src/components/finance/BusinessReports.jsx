@@ -13,7 +13,7 @@ const getAuthHeaders = () => {
 const BusinessReports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // High-level aggregates
   const [summary, setSummary] = useState({
     totalInvoices: 0, totalRevenue: 0,
@@ -98,7 +98,7 @@ const BusinessReports = () => {
               <div className="text-3xl font-black text-gray-900 dark:text-white">₹{summary.totalRevenue.toFixed(2)}</div>
               <div className="text-sm text-gray-500 mt-2 font-medium">{summary.totalInvoices} Invoices Generated</div>
             </div>
-            
+
             <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm">
               <div className="flex items-center gap-3 mb-2 text-gray-500 dark:text-gray-400">
                 <CheckCircle size={18} className="text-green-500" /> <span className="font-semibold text-sm uppercase">Total Collected</span>
@@ -127,11 +127,11 @@ const BusinessReports = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            
+
             {/* Recent Invoices */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
               <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
-                <h3 className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2"><Clock size={16}/> Recent Billing</h3>
+                <h3 className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2"><Clock size={16} /> Recent Billing</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
@@ -161,7 +161,7 @@ const BusinessReports = () => {
             {/* Recent Collections */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
               <div className="p-4 border-b border-gray-200 dark:border-slate-800 flex justify-between items-center bg-gray-50 dark:bg-slate-800/50">
-                <h3 className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2"><DollarSign size={16}/> Recent Collections</h3>
+                <h3 className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2"><DollarSign size={16} /> Recent Collections</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
