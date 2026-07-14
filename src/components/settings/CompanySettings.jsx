@@ -103,8 +103,8 @@ const CompanySettings = () => {
         if (data.success) {
           const cData = data.data;
           setForm((prev) => ({ ...prev, ...cData }));
-          if (cData.logo) setLogoPreview(`${config.apiUrl}/uploads/${cData.logo}`);
-          if (cData.signature) setSignaturePreview(`${config.apiUrl}/uploads/${cData.signature}`);
+          if (cData.logo) setLogoPreview(`${config.apiUrl.replace('/api', '')}/uploads/${cData.logo}`);
+          if (cData.signature) setSignaturePreview(`${config.apiUrl.replace('/api', '')}/uploads/${cData.signature}`);
         }
       } catch {
         setError('Cannot connect to server.');
