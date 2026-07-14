@@ -125,7 +125,7 @@ const EmployeesTab = () => {
       const payload = {
         name: formData.name,
         email: formData.email,
-        phone: formData.phone,
+        personalInfo: { phone: formData.phone },
         departmentId: formData.departmentId,
         designationId: formData.designationId,
         joiningDate: formData.joiningDate,
@@ -186,7 +186,7 @@ const EmployeesTab = () => {
     setShowPassword(false);
     setFormData(emp ? {
       name: emp.name, email: emp.email,
-      phone: emp.phone || '',
+      phone: emp.personalInfo?.phone || '',
       departmentId: emp.departmentId || '', designationId: emp.designationId || '',
       joiningDate: emp.joiningDate ? emp.joiningDate.split('T')[0] : '',
       status: emp.status || 'Active',

@@ -1669,9 +1669,10 @@ const Dashboard = () => {
           >
             {companyDetails?.logo ? (
               <img
-                src={companyDetails.logo}
+                src={companyDetails.logo.startsWith('http') ? companyDetails.logo : `${config.apiUrl.replace('/api', '')}/uploads/${companyDetails.logo}`}
                 alt={`${companyDetails.company_name} logo`}
                 className="w-9 h-9 rounded-lg object-cover bg-white ring-1 ring-blue-100 dark:ring-slate-700 shrink-0"
+                onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }}
               />
             ) : (
               <img
@@ -1768,7 +1769,7 @@ const Dashboard = () => {
             <div className="md:hidden flex items-center">
               <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center mr-2 overflow-hidden">
                 {companyDetails?.logo ? (
-                  <img src={companyDetails.logo} alt="logo" className="w-full h-full object-cover" />
+                  <img src={companyDetails.logo.startsWith('http') ? companyDetails.logo : `${config.apiUrl.replace('/api', '')}/uploads/${companyDetails.logo}`} alt="logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }} />
                 ) : (
                   <span className="text-white font-bold text-sm">
                     {(companyDetails?.company_name || 'DT').substring(0, 2).toUpperCase()}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { User, Building, FileText, Bell, File, Activity, Settings as SettingsIcon, Database, Check, AlertCircle } from 'lucide-react';
 import ProfileSettings from './ProfileSettings';
+import EmployeeProfileSettings from './EmployeeProfileSettings';
 import CompanySettings from './CompanySettings';
 import TemplateSettings from './TemplateSettings';
 import NotificationSettings from './NotificationSettings';
@@ -39,7 +40,10 @@ const SettingsModule = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'profile': return <ProfileSettings />;
+      case 'profile':
+        return (role === 'Employee' || role === 'employee' || role === 'User' || role === 'user')
+          ? <EmployeeProfileSettings />
+          : <ProfileSettings />;
       case 'company': return <CompanySettings />;
       case 'templates': return <TemplateSettings />;
       case 'notifications': return <NotificationSettings />;
@@ -47,7 +51,10 @@ const SettingsModule = () => {
       case 'audit': return <AuditLogs />;
       case 'system': return <SystemSettings />;
       case 'backup': return <SystemSettings isBackup />;
-      default: return <ProfileSettings />;
+      default:
+        return (role === 'Employee' || role === 'employee' || role === 'User' || role === 'user')
+          ? <EmployeeProfileSettings />
+          : <ProfileSettings />;
     }
   };
 
