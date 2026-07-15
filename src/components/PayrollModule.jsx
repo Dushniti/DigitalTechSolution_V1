@@ -224,6 +224,26 @@ const DashboardTab = ({ onNavigate }) => {
   );
 };
 
+// ─── Reusable Field Input ─────────────────────────────────────────────────────
+const FieldInput = ({ label, field, type = 'number', prefix, formData, onChange }) => (
+  <div>
+    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">{label}</label>
+    <div className="relative">
+      {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{prefix}</span>}
+      <input
+        type={type}
+        value={formData[field] ?? ''}
+        onChange={e => {
+          const val = e.target.value;
+          onChange(field, type === 'number' ? (val === '' ? '' : Number(val)) : val);
+        }}
+        className={`w-full ${prefix ? 'pl-7' : 'px-3'} pr-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
+        min={type === 'number' ? 0 : undefined}
+      />
+    </div>
+  </div>
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // TAB 2: SALARY SETUP
 // ─────────────────────────────────────────────────────────────────────────────
@@ -332,21 +352,7 @@ const SalarySetupTab = () => {
     (u.name || '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const FieldInput = ({ label, field, type = 'number', prefix }) => (
-    <div>
-      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">{label}</label>
-      <div className="relative">
-        {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">{prefix}</span>}
-        <input
-          type={type}
-          value={formData[field] ?? ''}
-          onChange={e => handleChange(field, type === 'number' ? Number(e.target.value) : e.target.value)}
-          className={`w-full ${prefix ? 'pl-7' : 'px-3'} pr-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all`}
-          min={type === 'number' ? 0 : undefined}
-        />
-      </div>
-    </div>
-  );
+
 
   return (
     <div>
@@ -414,11 +420,11 @@ const SalarySetupTab = () => {
                         <div className="mt-5 mb-4">
                           <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><Users size={13} /> Employee Profile</h4>
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                            <FieldInput label="Full Name" field="name" type="text" />
-                            <FieldInput label="Employee Code" field="employeeCode" type="text" />
-                            <FieldInput label="Department" field="department" type="text" />
-                            <FieldInput label="Designation" field="designation" type="text" />
-                            <FieldInput label="Joining Date" field="joiningDate" type="date" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Full Name" field="name" type="text" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Employee Code" field="employeeCode" type="text" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Department" field="department" type="text" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Designation" field="designation" type="text" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Joining Date" field="joiningDate" type="date" />
                           </div>
                         </div>
 
@@ -426,13 +432,13 @@ const SalarySetupTab = () => {
                         <div className="mb-4">
                           <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><IndianRupee size={13} /> Earnings</h4>
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            <FieldInput label="Basic Salary" field="basicSalary" prefix="₹" />
-                            <FieldInput label="HRA" field="hra" prefix="₹" />
-                            <FieldInput label="Conveyance" field="conveyanceAllowance" prefix="₹" />
-                            <FieldInput label="Medical Allowance" field="medicalAllowance" prefix="₹" />
-                            <FieldInput label="Special Allowance" field="specialAllowance" prefix="₹" />
-                            <FieldInput label="Bonus" field="bonus" prefix="₹" />
-                            <FieldInput label="Incentive" field="incentive" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Basic Salary" field="basicSalary" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="HRA" field="hra" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Conveyance" field="conveyanceAllowance" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Medical Allowance" field="medicalAllowance" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Special Allowance" field="specialAllowance" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Bonus" field="bonus" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Incentive" field="incentive" prefix="₹" />
                           </div>
                         </div>
 
@@ -440,10 +446,10 @@ const SalarySetupTab = () => {
                         <div className="mb-4">
                           <h4 className="text-xs font-bold text-red-500 uppercase tracking-wider mb-3 flex items-center gap-1.5"><XCircle size={13} /> Statutory Deductions</h4>
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            <FieldInput label="PF Contribution" field="pf" prefix="₹" />
-                            <FieldInput label="ESI Contribution" field="esi" prefix="₹" />
-                            <FieldInput label="Professional Tax" field="professionalTax" prefix="₹" />
-                            <FieldInput label="Other Deductions" field="otherDeductions" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="PF Contribution" field="pf" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="ESI Contribution" field="esi" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Professional Tax" field="professionalTax" prefix="₹" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Other Deductions" field="otherDeductions" prefix="₹" />
                           </div>
                         </div>
 
@@ -451,9 +457,9 @@ const SalarySetupTab = () => {
                         <div className="mb-5">
                           <h4 className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-3 flex items-center gap-1.5"><CreditCard size={13} /> Bank Details</h4>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <FieldInput label="Bank Name" field="bankName" type="text" />
-                            <FieldInput label="Account Number" field="accountNumber" type="text" />
-                            <FieldInput label="IFSC Code" field="ifscCode" type="text" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Bank Name" field="bankName" type="text" />
+                            <FieldInput formData={formData} onChange={handleChange} label="Account Number" field="accountNumber" type="text" />
+                            <FieldInput formData={formData} onChange={handleChange} label="IFSC Code" field="ifscCode" type="text" />
                           </div>
                         </div>
 
