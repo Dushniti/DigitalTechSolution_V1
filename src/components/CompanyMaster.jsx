@@ -40,6 +40,28 @@ const CompanyModal = ({ company, onClose, onSaved }) => {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
+
+  const isLogoUrlFilled = !!(form.logo && !form.logo.startsWith('data:image'));
+  const isLogoFileFilled = !!(form.logo && form.logo.startsWith('data:image'));
+
+  const handleLogoFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, logo: reader.result });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setForm({ ...form, logo: '' });
+    }
+  };
+
+  const clearLogo = () => {
+    setForm({ ...form, logo: '' });
+    setFileInputKey(Date.now());
+  };
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -155,7 +177,17 @@ const CompanyModal = ({ company, onClose, onSaved }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Logo URL</label>
-                <input type="text" name="logo" value={form.logo} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white" />
+                <div className="flex gap-2 items-center">
+                  <input type="text" name="logo" value={isLogoUrlFilled ? form.logo : ''} onChange={(e) => setForm({...form, logo: e.target.value})} disabled={isLogoFileFilled} placeholder={isLogoFileFilled ? "Disabled (File Uploaded)" : "Enter Logo URL"} className="w-full px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed" />
+                  {isLogoUrlFilled && <button type="button" onClick={clearLogo} className="text-red-500 hover:text-red-700 p-1" title="Clear Logo"><X size={16} /></button>}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Upload Logo</label>
+                <div className="flex gap-2 items-center">
+                  <input key={fileInputKey} type="file" accept="image/*" onChange={handleLogoFileChange} disabled={isLogoUrlFilled} className="w-full px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm bg-gray-50 dark:bg-slate-800 dark:text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer" />
+                  {isLogoFileFilled && <button type="button" onClick={clearLogo} className="text-red-500 hover:text-red-700 p-1" title="Clear Logo"><X size={16} /></button>}
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
