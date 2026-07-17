@@ -58,6 +58,7 @@ import Announcements from './saas/Announcements';
 import BranchManagement from './branches/BranchManagement';
 import OfficeLocationManagement from './geofence/OfficeLocationManagement';
 import GeoAttendanceReport from './geofence/GeoAttendanceReport';
+import RoleManagement from './roles/RoleManagement';
 
 // ─── Edit User Modal ───────────────────────────────────────────────────────────
 const EditUserModal = ({ user, onClose, onSaved }) => {
@@ -1526,6 +1527,14 @@ const Dashboard = () => {
   });
 
   const [companyDetails, setCompanyDetails] = useState(null);
+  const [currentUserData, setCurrentUserData] = useState(null);
+
+  useEffect(() => {
+    fetch(`${config.apiUrl}/users/me/profile`, { headers: authHeaders() })
+      .then(res => res.json())
+      .then(data => { if (data.success) setCurrentUserData(data.data); })
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -1574,16 +1583,24 @@ const Dashboard = () => {
   };
 
   const role = getRoleFromToken();
+
+  const hasAccess = (moduleId, defaultCheck) => {
+    if (currentUserData && Array.isArray(currentUserData.accessibleModules)) {
+      return currentUserData.accessibleModules.includes(moduleId);
+    }
+    return defaultCheck;
+  };
+
   const navItems = [
-    ...(role !== 'employee' ? [{ id: 'overview', label: 'Dashboard', icon: LayoutDashboard }] : []),
-    { id: 'attendance', label: 'Attendance', icon: Clock },
-    { id: 'leaves', label: 'Leaves', icon: CalendarDays },
-    { id: 'regularization', label: 'Regularization', icon: ClipboardList },
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'salary', label: 'Payroll', icon: IndianRupee }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'users', label: 'Auth Users', icon: Users }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'organization', label: 'Org & Staff', icon: Building }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'hr-settings', label: 'HR Settings', icon: Settings }] : []),
-    ...(role === 'Admin' ? [{
+    ...(hasAccess('overview', role !== 'employee') ? [{ id: 'overview', label: 'Dashboard', icon: LayoutDashboard }] : []),
+    ...(hasAccess('attendance', true) ? [{ id: 'attendance', label: 'Attendance', icon: Clock }] : []),
+    ...(hasAccess('leaves', true) ? [{ id: 'leaves', label: 'Leaves', icon: CalendarDays }] : []),
+    ...(hasAccess('regularization', true) ? [{ id: 'regularization', label: 'Regularization', icon: ClipboardList }] : []),
+    ...(hasAccess('salary', role === 'Admin' || role === 'Company Admin' || role === 'HR') ? [{ id: 'salary', label: 'Payroll', icon: IndianRupee }] : []),
+    ...(hasAccess('users', role === 'Admin' || role === 'Company Admin') ? [{ id: 'users', label: 'Auth Users', icon: Users }] : []),
+    ...(hasAccess('organization', role === 'Admin' || role === 'Company Admin' || role === 'HR') ? [{ id: 'organization', label: 'Org & Staff', icon: Building }] : []),
+    ...(hasAccess('hr-settings', role === 'Admin' || role === 'Company Admin' || role === 'HR') ? [{ id: 'hr-settings', label: 'HR Settings', icon: Settings }] : []),
+    ...(hasAccess('saas-group', role === 'Admin') ? [{
       id: 'saas-group',
       label: 'SaaS Admin',
       icon: Layers,
@@ -1593,59 +1610,60 @@ const Dashboard = () => {
         { id: 'announcements', label: 'Announcements' },
       ]
     }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{
+    ...(hasAccess('master-group', role === 'Admin' || role === 'Company Admin' || role === 'HR') ? [{
       id: 'master-group',
       label: 'Master',
       icon: Briefcase,
       subItems: [
-        ...(role === 'Admin' ? [{ id: 'master', label: 'Job Master' }] : []),
-        ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'branches', label: 'Branches' }] : []),
-        ...(role === 'Admin' ? [{ id: 'company-master', label: 'Company Master' }] : []),
+        ...(hasAccess('master', role === 'Admin') ? [{ id: 'master', label: 'Job Master' }] : []),
+        ...(hasAccess('branches', role === 'Admin' || role === 'Company Admin') ? [{ id: 'branches', label: 'Branches' }] : []),
+        ...(hasAccess('company-master', role === 'Admin') ? [{ id: 'company-master', label: 'Company Master' }] : []),
+        ...(hasAccess('role-management', role === 'Admin') ? [{ id: 'role-management', label: 'Role Management' }] : []),
       ]
     }] : []),
-    { id: 'documents', label: 'Documents', icon: FileText },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'geo-reports', label: 'Geo Reports', icon: MapPin }] : []),
-    ...(role === 'Admin' ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
-    ...(role === 'Company Admin' ? [{ id: 'billing', label: 'Billing & Plan', icon: CreditCard }] : []),
-    ...(role === 'Company Admin' ? [{ id: 'white-label', label: 'Branding', icon: Palette }] : []),
-    ...(role === 'Company Admin' ? [{ id: 'api-keys', label: 'API Keys', icon: Key }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'HR' ? [{ id: 'office-locations', label: 'Office Locations', icon: MapPin }] : []),
-    ...(role === 'Company Admin' ? [{ id: 'announcements', label: 'Announcements', icon: Megaphone }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' ? [{
+    ...(hasAccess('documents', true) ? [{ id: 'documents', label: 'Documents', icon: FileText }] : []),
+    ...(hasAccess('settings', true) ? [{ id: 'settings', label: 'Settings', icon: Settings }] : []),
+    ...(hasAccess('reports', role === 'Admin' || role === 'Company Admin' || role === 'HR') ? [{ id: 'reports', label: 'Reports', icon: BarChart2 }] : []),
+    ...(hasAccess('geo-reports', role === 'Admin' || role === 'Company Admin' || role === 'HR') ? [{ id: 'geo-reports', label: 'Geo Reports', icon: MapPin }] : []),
+    ...(hasAccess('contacts', role === 'Admin') ? [{ id: 'contacts', label: 'Messages', icon: MessageSquare }] : []),
+    ...(hasAccess('billing', role === 'Company Admin') ? [{ id: 'billing', label: 'Billing & Plan', icon: CreditCard }] : []),
+    ...(hasAccess('white-label', role === 'Company Admin') ? [{ id: 'white-label', label: 'Branding', icon: Palette }] : []),
+    ...(hasAccess('api-keys', role === 'Company Admin') ? [{ id: 'api-keys', label: 'API Keys', icon: Key }] : []),
+    ...(hasAccess('office-locations', role === 'Admin' || role === 'Company Admin' || role === 'HR') ? [{ id: 'office-locations', label: 'Office Locations', icon: MapPin }] : []),
+    ...(hasAccess('announcements', role === 'Company Admin') ? [{ id: 'announcements', label: 'Announcements', icon: Megaphone }] : []),
+    ...(hasAccess('crm-group', role === 'Admin' || role === 'Company Admin' || role === 'user') ? [{
       id: 'crm-group',
       label: 'CRM & Inventory',
       icon: Package,
       subItems: [
-        { id: 'customers', label: 'Customers' },
-        ...(role !== 'employee' ? [{ id: 'vendors', label: 'Vendors' }] : []),
-        { id: 'product-categories', label: 'Categories' },
-        { id: 'products', label: 'Products' }
+        ...(hasAccess('customers', true) ? [{ id: 'customers', label: 'Customers' }] : []),
+        ...(hasAccess('vendors', role !== 'employee') ? [{ id: 'vendors', label: 'Vendors' }] : []),
+        ...(hasAccess('product-categories', true) ? [{ id: 'product-categories', label: 'Categories' }] : []),
+        ...(hasAccess('products', true) ? [{ id: 'products', label: 'Products' }] : [])
       ]
     }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee' ? [{
+    ...(hasAccess('sales-ops-group', role === 'Admin' || role === 'Company Admin' || role === 'user' || role === 'employee') ? [{
       id: 'sales-ops-group',
       label: 'Sales & Ops',
       icon: Briefcase,
       subItems: [
-        ...(role !== 'employee' ? [{ id: 'quotations', label: 'Quotations' }] : []),
-        ...(role !== 'employee' ? [{ id: 'work-orders', label: 'Work Orders' }] : []),
-        ...(role === 'employee' ? [{ id: 'my-tasks', label: 'My Tasks' }] : [])
+        ...(hasAccess('quotations', role !== 'employee') ? [{ id: 'quotations', label: 'Quotations' }] : []),
+        ...(hasAccess('work-orders', role !== 'employee') ? [{ id: 'work-orders', label: 'Work Orders' }] : []),
+        ...(hasAccess('my-tasks', role === 'employee') ? [{ id: 'my-tasks', label: 'My Tasks' }] : [])
       ]
     }] : []),
-    ...(role === 'Admin' || role === 'Company Admin' || role === 'user' ? [{
+    ...(hasAccess('finance-group', role === 'Admin' || role === 'Company Admin' || role === 'user') ? [{
       id: 'finance-group',
       label: 'Finance',
       icon: IndianRupee,
       subItems: [
-        ...(role !== 'employee' ? [{ id: 'invoices', label: 'Invoices' }] : []),
-        ...(role !== 'employee' ? [{ id: 'payments', label: 'Payments & Receipts' }] : []),
-        ...(role !== 'employee' ? [{ id: 'ledger', label: 'Ledger' }] : []),
-        ...(role === 'Admin' || role === 'Company Admin' ? [{ id: 'expense-categories', label: 'Expense Categories' }] : []),
-        ...(role !== 'employee' ? [{ id: 'expenses', label: 'Expenses' }] : []),
-        ...(role !== 'employee' ? [{ id: 'expense-ledger', label: 'Expense Ledger' }] : []),
-        ...(role !== 'employee' ? [{ id: 'accounting-dashboard', label: 'Analytics & Reports' }] : [])
+        ...(hasAccess('invoices', role !== 'employee') ? [{ id: 'invoices', label: 'Invoices' }] : []),
+        ...(hasAccess('payments', role !== 'employee') ? [{ id: 'payments', label: 'Payments & Receipts' }] : []),
+        ...(hasAccess('ledger', role !== 'employee') ? [{ id: 'ledger', label: 'Ledger' }] : []),
+        ...(hasAccess('expense-categories', role === 'Admin' || role === 'Company Admin') ? [{ id: 'expense-categories', label: 'Expense Categories' }] : []),
+        ...(hasAccess('expenses', role !== 'employee') ? [{ id: 'expenses', label: 'Expenses' }] : []),
+        ...(hasAccess('expense-ledger', role !== 'employee') ? [{ id: 'expense-ledger', label: 'Expense Ledger' }] : []),
+        ...(hasAccess('accounting-dashboard', role !== 'employee') ? [{ id: 'accounting-dashboard', label: 'Analytics & Reports' }] : [])
       ]
     }] : []),
   ];
@@ -1830,6 +1848,7 @@ const Dashboard = () => {
             {activeTab === 'master' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <MasterModule />}
             {activeTab === 'company-master' && role === 'Admin' && <CompanyMaster />}
             {activeTab === 'branches' && (role === 'Admin' || role === 'Company Admin') && <BranchManagement />}
+            {activeTab === 'role-management' && role === 'Admin' && <RoleManagement />}
             {activeTab === 'settings' && <SettingsModule />}
             {activeTab === 'documents' && <DocumentModule />}
             {activeTab === 'reports' && (role === 'Admin' || role === 'Company Admin' || role === 'HR') && <ReportsModule />}
