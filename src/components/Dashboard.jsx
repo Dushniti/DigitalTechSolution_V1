@@ -1083,30 +1083,30 @@ const AttendanceModule = () => {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Attendance</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Manage daily punch-ins</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row w-full md:w-auto items-stretch sm:items-center gap-3">
 
           {/* Compact Filter */}
-          <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-2 py-1 shadow-sm">
+          <div className="flex flex-1 items-center gap-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl px-2 py-1.5 shadow-sm">
             <input
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer w-[110px] p-1"
+              className="bg-transparent border-none text-sm text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer flex-1 p-1"
             />
             {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
               <>
-                <div className="w-px h-4 bg-gray-200 dark:bg-slate-700 mx-1"></div>
+                <div className="w-px h-5 bg-gray-200 dark:bg-slate-700 mx-1"></div>
                 <input
                   type="text"
                   placeholder="Email..."
                   value={filterEmail}
                   onChange={(e) => setFilterEmail(e.target.value)}
-                  className="bg-transparent border-none text-xs text-gray-600 dark:text-gray-300 focus:ring-0 outline-none w-24 p-1 placeholder-gray-400"
+                  className="bg-transparent border-none text-sm text-gray-600 dark:text-gray-300 focus:ring-0 outline-none flex-1 p-1 placeholder-gray-400 min-w-[80px]"
                 />
               </>
             )}
@@ -1115,7 +1115,7 @@ const AttendanceModule = () => {
               className="ml-1 p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center"
               title="Search"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
             </button>
             {(filterDate || filterEmail) && (
               <button
@@ -1123,28 +1123,28 @@ const AttendanceModule = () => {
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
                 title="Clear"
               >
-                <X size={14} />
+                <X size={16} />
               </button>
             )}
           </div>
 
-          <button onClick={fetchAttendance} className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+          <button onClick={fetchAttendance} className="hidden sm:flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
 
           {currentUserRole !== 'Admin' && (
-            <div className="flex gap-2">
+            <div className="flex w-full sm:w-auto mt-2 sm:mt-0">
               {!todayStatus ? (
                 <button
                   onClick={() => handleClockAction('login')}
                   disabled={clockLoading}
                   title="Your location will be captured for geo-fencing validation"
-                  className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all disabled:opacity-70"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-sm font-bold rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 text-white shadow-sm transition-all disabled:opacity-70"
                 >
                   {clockLoading ? (
-                    <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Locating…</>
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Locating…</>
                   ) : (
-                    <><Clock size={14} /> Punch In</>
+                    <><Clock size={16} /> Punch In</>
                   )}
                 </button>
               ) : !todayStatus.punchOutTime ? (
@@ -1152,16 +1152,16 @@ const AttendanceModule = () => {
                   onClick={() => handleClockAction('logout')}
                   disabled={clockLoading}
                   title="Your location will be captured for geo-fencing validation"
-                  className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-red-500 text-white shadow-sm transition-all disabled:opacity-70"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-sm font-bold rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-red-500 text-white shadow-sm transition-all disabled:opacity-70"
                 >
                   {clockLoading ? (
-                    <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Locating…</>
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Locating…</>
                   ) : (
-                    <><Clock size={14} /> Punch Out</>
+                    <><Clock size={16} /> Punch Out</>
                   )}
                 </button>
               ) : (
-                <span className="px-4 py-1.5 text-xs font-bold rounded-xl bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-400">
+                <span className="w-full sm:w-auto text-center px-5 py-2 text-sm font-bold rounded-xl bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-gray-400 border border-gray-200 dark:border-slate-700">
                   Punched Out for Today
                 </span>
               )}
@@ -1185,68 +1185,138 @@ const AttendanceModule = () => {
             <p className="text-gray-500 font-medium">No attendance records found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>}
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch In</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch Out</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                {records.map((r) => (
-                  <tr key={r._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                    <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{r.date}</td>
-                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">{r.employeeName || r.email}</div>
-                        {r.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{r.employeeCode} • {r.email}</div>}
-                        {!r.employeeCode && r.employeeName && <div className="text-xs text-gray-500 mt-0.5">{r.email}</div>}
+          <>
+            {/* Desktop Table View */}
+            <div className={['employee', 'user'].includes(currentUserRole?.toLowerCase()) ? 'hidden md:block overflow-x-auto' : 'overflow-x-auto'}>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>}
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch In</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Punch Out</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                  {records.map((r) => (
+                    <tr key={r._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
+                      <td className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">{r.date}</td>
+                      {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{r.employeeName || r.email}</div>
+                          {r.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{r.employeeCode} • {r.email}</div>}
+                          {!r.employeeCode && r.employeeName && <div className="text-xs text-gray-500 mt-0.5">{r.email}</div>}
+                        </td>
+                      )}
+                      <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                        {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                       </td>
-                    )}
-                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                      {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
-                      {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
-                    </td>
-                    <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-gray-500 dark:text-gray-400">
+                        {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        {r.status === 'Present' && !r.punchOutTime ? (
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                            Incomplete
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                            {r.status}
+                          </span>
+                        )}
+
+                        {currentUserRole !== 'Admin' && (
+                          <button
+                            onClick={() => {
+                              setRegForm({
+                                attendanceId: r._id,
+                                date: r.date,
+                                punchInTime: r.punchInTime ? new Date(r.punchInTime).toISOString().slice(0, 16) : '',
+                                punchOutTime: r.punchOutTime ? new Date(r.punchOutTime).toISOString().slice(0, 16) : '',
+                                reason: ''
+                              });
+                              setShowRegModal(true);
+                            }}
+                            className="ml-3 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline"
+                          >
+                            Regularize
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View (Only for Employees) */}
+            {['employee', 'user'].includes(currentUserRole?.toLowerCase()) && (
+              <div className="block md:hidden divide-y divide-gray-100 dark:divide-slate-800">
+              {records.map((r) => (
+                <div key={r._id} className="p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <div className="font-bold text-gray-900 dark:text-white">{r.date}</div>
+                    <div>
                       {r.status === 'Present' && !r.punchOutTime ? (
-                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                        <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-wider">
                           Incomplete
                         </span>
                       ) : (
-                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">
                           {r.status}
                         </span>
                       )}
+                    </div>
+                  </div>
 
-                      {currentUserRole !== 'Admin' && (
-                        <button
-                          onClick={() => {
-                            setRegForm({
-                              attendanceId: r._id,
-                              date: r.date,
-                              punchInTime: r.punchInTime ? new Date(r.punchInTime).toISOString().slice(0, 16) : '',
-                              punchOutTime: r.punchOutTime ? new Date(r.punchOutTime).toISOString().slice(0, 16) : '',
-                              reason: ''
-                            });
-                            setShowRegModal(true);
-                          }}
-                          className="ml-3 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:underline"
-                        >
-                          Regularize
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
+                    <div className="text-sm">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{r.employeeName || r.email}</div>
+                      {r.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{r.employeeCode} • {r.email}</div>}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center text-sm bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700/50">
+                    <div className="flex-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Punch In</div>
+                      <div className="font-semibold text-gray-800 dark:text-gray-200">
+                        {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </div>
+                    </div>
+                    <div className="w-px h-8 bg-gray-200 dark:bg-slate-700 mx-3"></div>
+                    <div className="flex-1 text-right">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Punch Out</div>
+                      <div className="font-semibold text-gray-800 dark:text-gray-200">
+                        {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {currentUserRole !== 'Admin' && (
+                    <div className="pt-2">
+                      <button
+                        onClick={() => {
+                          setRegForm({
+                            attendanceId: r._id,
+                            date: r.date,
+                            punchInTime: r.punchInTime ? new Date(r.punchInTime).toISOString().slice(0, 16) : '',
+                            punchOutTime: r.punchOutTime ? new Date(r.punchOutTime).toISOString().slice(0, 16) : '',
+                            reason: ''
+                          });
+                          setShowRegModal(true);
+                        }}
+                        className="w-full py-2.5 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded-xl transition-colors border border-blue-100 dark:border-blue-900/30"
+                      >
+                        Regularize Attendance
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            )}
+          </>
         )}
       </div>
       <AnimatePresence>
@@ -1575,7 +1645,7 @@ const Dashboard = () => {
 
   const role = getRoleFromToken();
   const navItems = [
-    ...(role !== 'employee' ? [{ id: 'overview', label: 'Dashboard', icon: LayoutDashboard }] : []),
+    { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'attendance', label: 'Attendance', icon: Clock },
     { id: 'leaves', label: 'Leaves', icon: CalendarDays },
     { id: 'regularization', label: 'Regularization', icon: ClipboardList },
