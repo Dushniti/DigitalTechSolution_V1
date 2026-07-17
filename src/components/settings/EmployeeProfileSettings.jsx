@@ -190,10 +190,10 @@ const EmployeeProfileSettings = () => {
       {/* Profile Hero Card */}
       <div className="bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'radial-gradient(circle at 70% 50%, white 0%, transparent 60%)'}} />
-        <div className="relative flex items-center gap-5">
+        <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
           {/* Avatar */}
           <div className="relative shrink-0">
-            <div className="w-20 h-20 rounded-2xl bg-white/20 border-2 border-white/40 overflow-hidden flex items-center justify-center shadow-lg">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 border-2 border-white/40 overflow-hidden flex items-center justify-center shadow-lg">
               {avatarPreview
                 ? <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = ''; }} />
                 : <User size={36} className="text-white/70" />
@@ -202,44 +202,44 @@ const EmployeeProfileSettings = () => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 w-7 h-7 bg-white text-blue-600 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+              className="absolute -bottom-1 -right-1 w-7 h-7 sm:w-8 sm:h-8 bg-white text-blue-600 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
               title="Change photo"
             >
-              <Camera size={13} />
+              <Camera size={14} />
             </button>
             <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleFileChange} />
           </div>
 
           {/* Name, email, badges */}
-          <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold truncate">{emp.name || form.name || 'Employee'}</h2>
+          <div className="flex-1 min-w-0 w-full mt-2 sm:mt-0">
+            <h2 className="text-xl sm:text-2xl font-bold truncate">{emp.name || form.name || 'Employee'}</h2>
             <p className="text-blue-100 text-sm truncate">{emp.email || ''}</p>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <div className="flex items-center justify-center sm:justify-start gap-2 mt-3 flex-wrap">
               {emp.employeeCode && (
-                <span className="flex items-center gap-1 text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">
+                <span className="flex items-center gap-1 text-[11px] sm:text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">
                   <Hash size={11} /> {emp.employeeCode}
                 </span>
               )}
               {emp.status && (
-                <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${statusColors[emp.status] || 'bg-white/20 text-white'}`}>
+                <span className={`text-[11px] sm:text-xs px-2.5 py-1 rounded-full font-semibold ${statusColors[emp.status] || 'bg-white/20 text-white'}`}>
                   {emp.status}
                 </span>
               )}
               {emp.employmentType && (
-                <span className="text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">{emp.employmentType}</span>
+                <span className="text-[11px] sm:text-xs bg-white/20 px-2.5 py-1 rounded-full font-medium">{emp.employmentType}</span>
               )}
             </div>
           </div>
 
           {/* Designation / Dept (desktop) */}
-          <div className="hidden md:flex flex-col items-end gap-1.5 shrink-0">
+          <div className="flex sm:flex-col items-center sm:items-end justify-center gap-2 sm:gap-1.5 shrink-0 mt-3 sm:mt-0 w-full sm:w-auto">
             {emp.designation?.title && (
-              <span className="text-xs bg-white/20 px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+              <span className="text-[11px] sm:text-xs bg-white/20 px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
                 <Award size={12} /> {emp.designation.title}
               </span>
             )}
             {emp.department?.name && (
-              <span className="text-xs bg-white/20 px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+              <span className="text-[11px] sm:text-xs bg-white/20 px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
                 <Building size={12} /> {emp.department.name}
               </span>
             )}

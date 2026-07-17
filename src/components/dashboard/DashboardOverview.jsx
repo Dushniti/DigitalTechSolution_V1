@@ -372,21 +372,35 @@ const DashboardOverview = ({ onNavigate }) => {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">Dashboard</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            Welcome to Digital Tech Solution, <span className="font-semibold text-gray-700 dark:text-gray-300">{data?.userName ? data.userName.split(' ')[0] : 'User'}</span>!
-          </p>
+      {(!data || data.role?.toLowerCase() !== 'employee') && (
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">Dashboard</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              Welcome to Digital Tech Solution, <span className="font-semibold text-gray-700 dark:text-gray-300">{data?.userName ? data.userName.split(' ')[0] : 'User'}</span>!
+            </p>
+          </div>
+          <button
+            onClick={fetchDashboardData}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
+          </button>
         </div>
-        <button
-          onClick={fetchDashboardData}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
-        </button>
-      </div>
+      )}
+
+      {data && data.role?.toLowerCase() === 'employee' && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={fetchDashboardData}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 flex items-center gap-2 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm border border-red-200 dark:border-red-800">
@@ -394,10 +408,11 @@ const DashboardOverview = ({ onNavigate }) => {
         </div>
       )}
 
+      {data?.role?.toLowerCase() === 'employee' && renderDashboard()}
       {renderLaunchpad()}
       {renderFinancialStats()}
       {renderCRMStats()}
-      {renderDashboard()}
+      {data?.role?.toLowerCase() !== 'employee' && renderDashboard()}
     </div>
   );
 };
