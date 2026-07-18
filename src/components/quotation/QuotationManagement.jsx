@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, FileText, Download, Printer, Copy, Edit, Trash2, X, AlertCircle, RefreshCw, Send, CheckCircle } from 'lucide-react';
+import { Plus, Search, FileText, Download, Printer, Copy, Edit, Trash2, X, AlertCircle, RefreshCw, Send, CheckCircle, MoreVertical } from 'lucide-react';
 import config from '../../config';
 import { useReactToPrint } from 'react-to-print';
 
@@ -20,6 +20,7 @@ const QuotationManagement = () => {
 
   // UI States
   const [showForm, setShowForm] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [viewingQuote, setViewingQuote] = useState(null);
@@ -229,7 +230,7 @@ const QuotationManagement = () => {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onClick={() => setActiveDropdown(null)}>
       {/* Toast Notification */}
       <AnimatePresence>
         {toast && (
@@ -292,8 +293,9 @@ const QuotationManagement = () => {
       )}
 
       {/* Quotation List */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="md:bg-white md:dark:bg-slate-900 md:rounded-2xl md:border md:border-gray-200 md:dark:border-slate-800 md:overflow-hidden md:shadow-sm">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-slate-800/50 text-gray-500 dark:text-gray-400">
               <tr>
@@ -355,6 +357,92 @@ const QuotationManagement = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Card View */}
+        <div className="block md:hidden flex flex-col gap-4">
+          {filteredQuotes.map((quote) => (
+            <div key={quote._id} className="p-4 space-y-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm">
+              <div className="flex justify-between items-start mb-1">
+                <div>
+                  <div className="font-bold text-gray-900 dark:text-white">{quote.quotation_number}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{new Date(quote.quotation_date).toLocaleDateString()}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                    ${quote.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                      quote.status === 'Sent' ? 'bg-blue-100 text-blue-700' :
+                        quote.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-gray-300'}`}>
+                    {quote.status}
+                  </span>
+                  
+                  {/* 3-Dot Dropdown Menu */}
+                  <div className="relative">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === quote._id ? null : quote._id); }}
+                      className="p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+
+                    <AnimatePresence>
+                      {activeDropdown === quote._id && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                          transition={{ duration: 0.15 }}
+                          className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 py-2 z-10 overflow-hidden"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {(role === 'Admin' || role === 'Company Admin' || role === 'User') && quote.status === 'Sent' && (
+                            <>
+                              <button onClick={() => { handleStatusChange(quote._id, 'Approved'); setActiveDropdown(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-green-600 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                                <CheckCircle size={16} /> Approve
+                              </button>
+                              <button onClick={() => { handleStatusChange(quote._id, 'Rejected'); setActiveDropdown(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                                <X size={16} /> Reject
+                              </button>
+                            </>
+                          )}
+                          <button onClick={() => { setViewingQuote(quote); setShowPrintModal(true); setActiveDropdown(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                            <Printer size={16} /> Print
+                          </button>
+                          {quote.status !== 'Approved' && (
+                            <button onClick={() => { setForm(quote); setEditingId(quote._id); setShowForm(true); setActiveDropdown(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-blue-600 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <Edit size={16} /> Edit
+                            </button>
+                          )}
+                          <button onClick={() => { handleDuplicate(quote); setActiveDropdown(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                            <Copy size={16} /> Copy
+                          </button>
+                          {(role === 'Admin' || role === 'Company Admin') && (
+                            <button onClick={() => { handleDelete(quote._id); setActiveDropdown(null); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <Trash2 size={16} /> Delete
+                            </button>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-sm">
+                <div className="font-medium text-gray-900 dark:text-gray-100">{quote.customerDetails?.company_name || quote.customerDetails?.contact_person || 'Unknown'}</div>
+              </div>
+
+              <div className="flex justify-between items-center text-sm bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700/50">
+                <div className="font-medium text-gray-500 dark:text-gray-400">Total Amount</div>
+                <div className="font-bold text-gray-900 dark:text-white">₹{quote.grand_total?.toLocaleString()}</div>
+              </div>
+
+            </div>
+          ))}
+          {filteredQuotes.length === 0 && !loading && (
+            <div className="p-8 text-center text-gray-500">No quotations found.</div>
+          )}
+        </div>
       </div>
 
       {/* Form Modal */}
@@ -392,44 +480,46 @@ const QuotationManagement = () => {
 
               {/* Items Table */}
               <div className="border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50 dark:bg-slate-800/50 text-gray-500 dark:text-gray-400">
-                    <tr>
-                      <th className="px-4 py-3">Service / Product</th>
-                      <th className="px-4 py-3">Qty</th>
-                      <th className="px-4 py-3">Price</th>
-                      <th className="px-4 py-3">Disc (%)</th>
-                      <th className="px-4 py-3">Tax (%)</th>
-                      <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                    {form.items.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-3">
-                          <input type="text" placeholder="Description" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" required />
-                        </td>
-                        <td className="px-4 py-3 w-20">
-                          <input type="number" min="1" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" required />
-                        </td>
-                        <td className="px-4 py-3 w-28">
-                          <input type="number" min="0" value={item.unit_price} onChange={(e) => handleItemChange(index, 'unit_price', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" required />
-                        </td>
-                        <td className="px-4 py-3 w-20">
-                          <input type="number" min="0" max="100" value={item.discount} onChange={(e) => handleItemChange(index, 'discount', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" />
-                        </td>
-                        <td className="px-4 py-3 w-20">
-                          <input type="number" min="0" max="100" value={item.tax} onChange={(e) => handleItemChange(index, 'tax', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" />
-                        </td>
-                        <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white w-28">₹{item.amount?.toFixed(2)}</td>
-                        <td className="px-4 py-3 text-right">
-                          <button type="button" onClick={() => handleRemoveItem(index)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left min-w-[700px]">
+                    <thead className="bg-gray-50 dark:bg-slate-800/50 text-gray-500 dark:text-gray-400">
+                      <tr>
+                        <th className="px-4 py-3">Service / Product</th>
+                        <th className="px-4 py-3">Qty</th>
+                        <th className="px-4 py-3">Price</th>
+                        <th className="px-4 py-3">Disc (%)</th>
+                        <th className="px-4 py-3">Tax (%)</th>
+                        <th className="px-4 py-3">Amount</th>
+                        <th className="px-4 py-3"></th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                      {form.items.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-3">
+                            <input type="text" placeholder="Description" value={item.description} onChange={(e) => handleItemChange(index, 'description', e.target.value)} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" required />
+                          </td>
+                          <td className="px-4 py-3 w-20">
+                            <input type="number" min="1" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" required />
+                          </td>
+                          <td className="px-4 py-3 w-28">
+                            <input type="number" min="0" value={item.unit_price} onChange={(e) => handleItemChange(index, 'unit_price', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" required />
+                          </td>
+                          <td className="px-4 py-3 w-20">
+                            <input type="number" min="0" max="100" value={item.discount} onChange={(e) => handleItemChange(index, 'discount', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" />
+                          </td>
+                          <td className="px-4 py-3 w-20">
+                            <input type="number" min="0" max="100" value={item.tax} onChange={(e) => handleItemChange(index, 'tax', Number(e.target.value))} className="w-full p-2 border rounded-lg dark:bg-slate-800 dark:border-slate-700" />
+                          </td>
+                          <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white w-28">₹{item.amount?.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right">
+                            <button type="button" onClick={() => handleRemoveItem(index)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
                 <div className="p-4 bg-gray-50 dark:bg-slate-800/50">
                   <button type="button" onClick={handleAddItem} className="text-sm font-semibold text-blue-600 flex items-center gap-1 hover:text-blue-700"><Plus size={16} /> Add Item</button>
                 </div>
@@ -454,19 +544,19 @@ const QuotationManagement = () => {
 
             </form>
 
-            <div className="p-6 border-t border-gray-100 dark:border-slate-800 flex justify-end gap-3 bg-gray-50 dark:bg-slate-900 rounded-b-2xl">
-              <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-xl font-semibold text-gray-600 border border-gray-300 hover:bg-gray-100 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors">Cancel</button>
+            <div className="p-4 md:p-6 border-t border-gray-100 dark:border-slate-800 flex flex-col-reverse sm:flex-row justify-end gap-3 bg-gray-50 dark:bg-slate-900 rounded-b-2xl">
+              <button onClick={() => setShowForm(false)} className="w-full sm:w-auto px-4 py-2 rounded-xl font-semibold text-gray-600 border border-gray-300 hover:bg-gray-100 dark:text-gray-300 dark:border-slate-700 dark:hover:bg-slate-800 transition-colors">Cancel</button>
               <button
                 type="button"
                 onClick={(e) => handleSubmit(e, true)}
-                className="px-4 py-2 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Send size={16} /> Save &amp; Send
               </button>
               <button
                 type="button"
                 onClick={(e) => handleSubmit(e, false)}
-                className="px-4 py-2 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
               >
                 Save Quotation
               </button>
@@ -481,15 +571,15 @@ const QuotationManagement = () => {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-gray-100 dark:bg-slate-900 w-full max-w-4xl max-h-[95vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-slate-700">
             {/* Toolbar */}
             <div className="flex justify-between items-center p-4 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shrink-0">
-              <h3 className="font-bold text-gray-900 dark:text-white">Print / Download PDF</h3>
-              <div className="flex items-center gap-3">
-                <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"><Printer size={16} /> Print Document</button>
+              <h3 className="font-bold text-gray-900 dark:text-white truncate pr-2">Print / Download PDF</h3>
+              <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                <button onClick={handlePrint} className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"><Printer size={16} /> <span className="hidden sm:inline">Print</span></button>
                 <button onClick={() => setShowPrintModal(false)} className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl"><X size={20} /></button>
               </div>
             </div>
 
             {/* Printable Area Wrapper */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center">
+            <div className="flex-1 overflow-auto p-4 md:p-8 flex md:justify-center">
               <style>
                 {`
                   @media print {
@@ -498,7 +588,7 @@ const QuotationManagement = () => {
                   }
                 `}
               </style>
-              <div ref={printRef} className="bg-white p-6 md:p-10 w-full max-w-[210mm] min-h-[297mm] shadow-lg text-black print:w-full print:max-w-full print:min-h-fit print:shadow-none print:p-0 print:pt-4 flex flex-col relative" style={{ color: '#000' }}>
+              <div ref={printRef} className="bg-white p-6 md:p-10 w-[210mm] shrink-0 min-h-[297mm] shadow-lg text-black print:w-full print:shrink print:min-h-fit print:shadow-none print:p-0 print:pt-4 flex flex-col relative mx-auto" style={{ color: '#000' }}>
                 {/* Header */}
                 <div className="flex justify-between items-start border-b-2 border-gray-800 pb-6 mb-8">
                   <div>
