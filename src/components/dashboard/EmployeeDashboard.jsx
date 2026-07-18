@@ -16,7 +16,8 @@ const EmployeeDashboard = ({ data, loading, onNavigate }) => {
   const [todayStatus, setTodayStatus] = useState(null);
   const [clockLoading, setClockLoading] = useState(false);
   
-  const isNight = currentTime.getHours() >= 12;
+  const currentHour = currentTime.getHours();
+  const isNight = currentHour >= 18 || currentHour < 6;
 
   const checkTodayStatus = async () => {
     try {
