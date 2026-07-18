@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Briefcase, CheckCircle, Clock, Paperclip, Send, AlertCircle, RefreshCw } from 'lucide-react';
+import { Briefcase, CheckCircle, Clock, Paperclip, Send, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 import config from '../../config';
 
 const EmployeeTaskDashboard = () => {
@@ -96,10 +96,10 @@ const EmployeeTaskDashboard = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-120px)] flex gap-6">
+    <div className="h-[calc(100vh-120px)] flex flex-col md:flex-row gap-4 md:gap-6">
       
       {/* Task List Sidebar */}
-      <div className="w-1/3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col shadow-sm">
+      <div className={`w-full md:w-1/3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden flex-col shadow-sm ${selectedTask ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-gray-100 dark:border-slate-800 flex justify-between items-center bg-gray-50/50 dark:bg-slate-800/30">
           <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2"><Briefcase size={18}/> My Tasks</h3>
           <button onClick={fetchTasks} className="text-gray-400 hover:text-gray-600"><RefreshCw size={16} className={loading ? 'animate-spin' : ''} /></button>
@@ -134,12 +134,17 @@ const EmployeeTaskDashboard = () => {
       </div>
 
       {/* Task Details & Timeline */}
-      <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col shadow-sm relative">
+      <div className={`flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 overflow-hidden flex-col shadow-sm relative ${!selectedTask ? 'hidden md:flex' : 'flex'}`}>
         {selectedTask ? (
           <>
-            <div className="p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{selectedTask.customerDetails?.company_name}</h2>
-              <div className="flex gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <div className="p-4 md:p-6 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/30">
+              <div className="flex items-center gap-3 mb-2">
+                <button onClick={() => setSelectedTask(null)} className="md:hidden p-1.5 bg-gray-200 dark:bg-slate-700 rounded-lg text-gray-600 dark:text-gray-300">
+                  <ArrowLeft size={18} />
+                </button>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{selectedTask.customerDetails?.company_name}</h2>
+              </div>
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
                 <span className="font-semibold">WO: {selectedTask.work_order_number}</span>
                 <span>Priority: <span className={selectedTask.priority === 'High' || selectedTask.priority === 'Urgent' ? 'text-red-500' : ''}>{selectedTask.priority}</span></span>
               </div>
@@ -147,7 +152,7 @@ const EmployeeTaskDashboard = () => {
             </div>
 
             {/* Timeline */}
-            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 dark:bg-slate-900/50">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50/30 dark:bg-slate-900/50">
               <h4 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6">Activity Log</h4>
               <div className="space-y-6">
                 {updates.map((upd, i) => (
@@ -195,10 +200,10 @@ const EmployeeTaskDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">Update Status:</span>
-                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="px-3 py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-semibold dark:text-white">
+                    <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full sm:w-auto px-3 py-2 sm:py-1.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-semibold dark:text-white">
                       <option value="Pending">Pending</option>
                       <option value="In Progress">In Progress</option>
                       <option value="On Hold">On Hold</option>
@@ -206,9 +211,9 @@ const EmployeeTaskDashboard = () => {
                     </select>
                   </div>
                   
-                  {file && <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded truncate max-w-[150px]">{file.name}</span>}
+                  {file && <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded truncate max-w-[150px] self-start sm:self-auto">{file.name}</span>}
                   
-                  <button type="submit" disabled={submitting} className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-sm transition-colors text-sm disabled:opacity-50">
+                  <button type="submit" disabled={submitting} className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-sm transition-colors text-sm disabled:opacity-50">
                     {submitting ? 'Posting...' : <><Send size={16} /> Post Update</>}
                   </button>
                 </div>
