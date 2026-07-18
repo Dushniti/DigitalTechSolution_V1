@@ -7,6 +7,7 @@ const getToken = () => localStorage.getItem('adminToken');
 const authHeaders = () => ({
   'Authorization': getToken() || '',
 });
+const getBaseUrl = () => config.apiUrl.replace('/api', '');
 
 const ProfileSettings = () => {
   const [form, setForm] = useState({
@@ -39,7 +40,7 @@ const ProfileSettings = () => {
             confirmPassword: '',
           });
           if (data.data.avatar) {
-            setAvatarPreview(`${config.apiUrl}/uploads/${data.data.avatar}`);
+            setAvatarPreview(`${getBaseUrl()}/uploads/${data.data.avatar}`);
           }
         }
       } catch (err) {
