@@ -34,6 +34,15 @@ const getRoleFromToken = () => {
   } catch { return null; }
 };
 
+const getTokenPayload = () => {
+  const token = getToken();
+  if (!token) return {};
+  try {
+    const actualToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+    return JSON.parse(atob(actualToken.split('.')[1]));
+  } catch { return {}; }
+};
+
 // ─── Toast Notification ───────────────────────────────────────────────────────
 const Toast = ({ message, type = 'success' }) => (
   <motion.div
@@ -86,13 +95,14 @@ const MapPreview = ({ lat, lng, radius = 200, height = 250 }) => {
 };
 
 // ─── Location Form Modal ──────────────────────────────────────────────────────
-const LocationModal = ({ editingLocation, onClose, onSaved, showToast }) => {
+const LocationModal = ({ editingLocation, onClose, onSaved, showToast, isAdmin = false, companies = [] }) => {
   const [form, setForm] = useState({
     officeName: editingLocation?.officeName || '',
     latitude: editingLocation?.latitude || '',
     longitude: editingLocation?.longitude || '',
     allowedRadius: editingLocation?.allowedRadius || 200,
     status: editingLocation?.status || 'Active',
+    companyId: editingLocation?.companyId ? String(editingLocation.companyId) : '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -127,6 +137,13 @@ const LocationModal = ({ editingLocation, onClose, onSaved, showToast }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Admin must select a company
+    if (isAdmin && !form.companyId) {
+      setError('Please select a company for this office location.');
+      setLoading(false);
+      return;
+    }
 
     // Basic validation
     const lat = parseFloat(form.latitude);
@@ -219,6 +236,36 @@ const LocationModal = ({ editingLocation, onClose, onSaved, showToast }) => {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Company Selector — Admin only */}
+          {isAdmin && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <Building2 size={14} className="text-purple-500" />
+                  Assign to Company <span className="text-red-500">*</span>
+                </span>
+              </label>
+              <select
+                name="companyId"
+                value={form.companyId}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2.5 border border-purple-200 dark:border-purple-700 rounded-xl text-sm bg-purple-50 dark:bg-purple-900/20 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              >
+                <option value="">— Select Company —</option>
+                {companies.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.company_name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-purple-500 dark:text-purple-400 mt-1 flex items-center gap-1">
+                <Info size={11} />
+                This location will only be visible to the selected company's admin.
+              </p>
+            </div>
+          )}
 
           {/* Office Name */}
           <div>
@@ -660,7 +707,7 @@ const DeleteConfirm = ({ location, onClose, onDeleted, showToast }) => {
 };
 
 // ─── Location Card ────────────────────────────────────────────────────────────
-const LocationCard = ({ location, index, onEdit, onDelete, onAssign, onToggleStatus, toggling }) => {
+const LocationCard = ({ location, index, onEdit, onDelete, onAssign, onToggleStatus, toggling, isAdmin }) => {
   const [expanded, setExpanded] = useState(false);
   const isActive = location.status === 'Active';
 
@@ -701,6 +748,12 @@ const LocationCard = ({ location, index, onEdit, onDelete, onAssign, onToggleSta
                   <Users size={11} />
                   {location.assignedEmployeeCount || 0} assigned
                 </span>
+                {isAdmin && location.companyId && (
+                  <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Building2 size={10} />
+                    {location.companyName || `Co. ${String(location.companyId).slice(-6)}`}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -808,6 +861,11 @@ const OfficeLocationManagement = () => {
   const [toggling, setToggling] = useState(null);
 
   const [toast, setToast] = useState(null);
+  const [companies, setCompanies] = useState([]);
+
+  // Detect current user's role from JWT
+  const currentRole = getRoleFromToken();
+  const isAdmin = currentRole === 'Admin';
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
@@ -841,6 +899,21 @@ const OfficeLocationManagement = () => {
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
+
+  // Fetch companies list when Admin is logged in (for location modal company selector)
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchCompanies = async () => {
+      try {
+        const res = await fetch(`${config.apiUrl}/companies`, { headers: authHeaders() });
+        const data = await res.json();
+        if (data.success) setCompanies(data.data || []);
+      } catch {
+        /* silent — dropdown will be empty */
+      }
+    };
+    fetchCompanies();
+  }, [isAdmin]);
 
   const handleToggleStatus = async (location) => {
     const newStatus = location.status === 'Active' ? 'Inactive' : 'Active';
@@ -900,6 +973,8 @@ const OfficeLocationManagement = () => {
             onClose={handleCloseModal}
             onSaved={handleSaved}
             showToast={showToast}
+            isAdmin={isAdmin}
+            companies={companies}
           />
         )}
       </AnimatePresence>
@@ -947,6 +1022,25 @@ const OfficeLocationManagement = () => {
           Add Location
         </button>
       </div>
+
+      {/* ── Role Context Banner ── */}
+      {isAdmin ? (
+        <div className="mb-4 flex items-center gap-3 p-3.5 rounded-xl bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-400 text-sm">
+          <Building2 size={15} className="shrink-0" />
+          <span>
+            <span className="font-semibold">Super Admin View:</span>{' '}
+            Showing office locations from <span className="font-semibold">all companies</span>.
+          </span>
+        </div>
+      ) : (
+        <div className="mb-4 flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-sm">
+          <Building2 size={15} className="shrink-0" />
+          <span>
+            <span className="font-semibold">Company View:</span>{' '}
+            Showing only your company's office locations.
+          </span>
+        </div>
+      )}
 
       {/* ── Info Banner ── */}
       <div className="mb-5 flex items-start gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 text-sm">
@@ -1047,6 +1141,7 @@ const OfficeLocationManagement = () => {
               onAssign={setAssignTarget}
               onToggleStatus={handleToggleStatus}
               toggling={toggling}
+              isAdmin={isAdmin}
             />
           ))}
         </div>
