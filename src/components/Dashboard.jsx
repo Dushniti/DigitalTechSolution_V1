@@ -1664,18 +1664,21 @@ const Dashboard = () => {
     } catch { /* silent */ }
   };
 
-  const handleSeedDemo = async () => {
-    setNotifLoading(true);
-    try {
-      await fetch(`${config.apiUrl}/notifications/seed-test`, { method: 'POST', headers: authHeaders() });
-      await fetchNotifications();
-    } catch { /* silent */ } finally { setNotifLoading(false); }
-  };
-
   const notifTypeIcon = (type) => {
     const map = {
-      LEAVE_APPROVED: '✅', LEAVE_REJECTED: '❌', PAYROLL_PROCESSED: '💰',
-      SHIFT_CHANGED: '🔄', REGULARIZATION_APPROVED: '✅', REGULARIZATION_REJECTED: '❌',
+      LEAVE_REQUEST: '📝',
+      LEAVE_APPROVED: '✅',
+      LEAVE_REJECTED: '❌',
+      REGULARIZATION_REQUEST: '⏰',
+      REGULARIZATION_APPROVED: '✅',
+      REGULARIZATION_REJECTED: '❌',
+      EXPENSE_SUBMITTED: '🧾',
+      EXPENSE_APPROVED: '💰',
+      EXPENSE_REJECTED: '❌',
+      PAYROLL_PROCESSED: '💵',
+      SHIFT_CHANGED: '🔄',
+      EMPLOYEE_ADDED: '👤',
+      SYSTEM_ALERT: '⚠️',
     };
     return map[type] || '🔔';
   };
@@ -1958,98 +1961,98 @@ const Dashboard = () => {
 
               <AnimatePresence>
                 {notifOpen && (
-                  <motion.div
-                    ref={notifRef}
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 z-50 overflow-hidden"
-                  >
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
-                      <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Bell size={14} className="text-blue-500" />
-                        Notifications
-                        {unreadCount > 0 && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">{unreadCount}</span>
-                        )}
-                      </h3>
-                      <div className="flex items-center gap-1">
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={handleMarkAllRead}
-                            disabled={notifLoading}
-                            title="Mark all as read"
-                            className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
-                          >
-                            <CheckCheck size={12} />
-                            All read
-                          </button>
-                        )}
-                        <button onClick={() => setNotifOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">
-                          <X size={14} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* List */}
-                    <div className="max-h-80 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-8 text-center px-4">
-                          <BellOff size={28} className="text-gray-300 dark:text-slate-600 mb-2" />
-                          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No notifications yet</p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 mb-3">You're all caught up!</p>
-                          <button
-                            onClick={handleSeedDemo}
-                            disabled={notifLoading}
-                            className="text-xs px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 font-semibold transition-all disabled:opacity-50"
-                          >
-                            {notifLoading ? 'Generating...' : '⚡ Generate Test Notifications'}
+                  <>
+                    {/* Mobile Backdrop to close on touch outside */}
+                    <div 
+                      className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 sm:hidden"
+                      onClick={() => setNotifOpen(false)}
+                    />
+                    <motion.div
+                      ref={notifRef}
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[70px] sm:top-full mt-0 sm:mt-2 w-auto sm:w-96 max-w-none sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 z-50 overflow-hidden flex flex-col max-h-[calc(100vh-90px)] sm:max-h-none"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800 shrink-0">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                          <Bell size={14} className="text-blue-500" />
+                          Notifications
+                          {unreadCount > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">{unreadCount}</span>
+                          )}
+                        </h3>
+                        <div className="flex items-center gap-1">
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={handleMarkAllRead}
+                              disabled={notifLoading}
+                              title="Mark all as read"
+                              className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
+                            >
+                              <CheckCheck size={12} />
+                              All read
+                            </button>
+                          )}
+                          <button onClick={() => setNotifOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">
+                            <X size={14} />
                           </button>
                         </div>
-                      ) : (
-                        notifications.map(n => (
-                          <div
-                            key={n._id}
-                            onClick={() => !n.isRead && handleMarkRead(n._id)}
-                            className={`group flex items-start gap-3 px-4 py-3 border-b border-gray-50 dark:border-slate-800 transition-colors cursor-pointer ${n.isRead ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/60 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}
-                          >
-                            <div className="text-lg shrink-0 mt-0.5 select-none">{notifTypeIcon(n.type)}</div>
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-xs font-semibold truncate ${n.isRead ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'}`}>{n.title}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed line-clamp-2">{n.message}</p>
-                              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-                                {new Date(n.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </div>
-                            <div className="flex flex-col items-center gap-1 shrink-0">
-                              {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 mt-1" />}
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteNotif(n._id); }}
-                                title="Delete"
-                                className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-300 hover:text-red-500 transition-all"
-                              >
-                                <Trash2 size={11} />
-                              </button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Footer */}
-                    {notifications.length > 0 && (
-                      <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-800">
-                        <button
-                          onClick={fetchNotifications}
-                          className="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center gap-1.5 transition-colors"
-                        >
-                          <RefreshCw size={11} /> Refresh
-                        </button>
                       </div>
-                    )}
-                  </motion.div>
+
+                      {/* List */}
+                      <div className="max-h-[60vh] sm:max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800/60">
+                        {notifications.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+                            <BellOff size={28} className="text-gray-300 dark:text-slate-600 mb-2" />
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No notifications yet</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">You're all caught up!</p>
+                          </div>
+                        ) : (
+                          notifications.map(n => (
+                            <div
+                              key={n._id}
+                              onClick={() => !n.isRead && handleMarkRead(n._id)}
+                              className={`group flex items-start gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-3 transition-colors cursor-pointer ${n.isRead ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/60 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}
+                            >
+                              <div className="text-lg shrink-0 mt-0.5 select-none">{notifTypeIcon(n.type)}</div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-xs font-semibold truncate ${n.isRead ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'}`}>{n.title}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed break-words">{n.message}</p>
+                                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                                  {new Date(n.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-center gap-1 shrink-0">
+                                {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 mt-1" />}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteNotif(n._id); }}
+                                  title="Delete"
+                                  className="opacity-70 sm:opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-all"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      {notifications.length > 0 && (
+                        <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-800 shrink-0">
+                          <button
+                            onClick={fetchNotifications}
+                            className="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <RefreshCw size={11} /> Refresh
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  </>
                 )}
               </AnimatePresence>
             </div>
