@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase, ChevronDown, Package, Layers, CreditCard, Palette, Key, Megaphone, MapPin
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase, ChevronDown, Package, Layers, CreditCard, Palette, Key, Megaphone, MapPin, CheckCheck, BellOff
 } from 'lucide-react';
 import config from '../config';
 
@@ -1253,68 +1253,68 @@ const AttendanceModule = () => {
             {/* Mobile Card View (Only for Employees) */}
             {['employee', 'user'].includes(currentUserRole?.toLowerCase()) && (
               <div className="block md:hidden divide-y divide-gray-100 dark:divide-slate-800">
-              {records.map((r) => (
-                <div key={r._id} className="p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <div className="font-bold text-gray-900 dark:text-white">{r.date}</div>
-                    <div>
-                      {r.status === 'Present' && !r.punchOutTime ? (
-                        <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-wider">
-                          Incomplete
-                        </span>
-                      ) : (
-                        <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">
-                          {r.status}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
-                    <div className="text-sm">
-                      <div className="font-medium text-gray-900 dark:text-gray-100">{r.employeeName || r.email}</div>
-                      {r.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{r.employeeCode} • {r.email}</div>}
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center text-sm bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700/50">
-                    <div className="flex-1">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Punch In</div>
-                      <div className="font-semibold text-gray-800 dark:text-gray-200">
-                        {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                {records.map((r) => (
+                  <div key={r._id} className="p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="font-bold text-gray-900 dark:text-white">{r.date}</div>
+                      <div>
+                        {r.status === 'Present' && !r.punchOutTime ? (
+                          <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 uppercase tracking-wider">
+                            Incomplete
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase tracking-wider">
+                            {r.status}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div className="w-px h-8 bg-gray-200 dark:bg-slate-700 mx-3"></div>
-                    <div className="flex-1 text-right">
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Punch Out</div>
-                      <div className="font-semibold text-gray-800 dark:text-gray-200">
-                        {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+
+                    {['Admin', 'Company Admin', 'HR'].includes(currentUserRole) && (
+                      <div className="text-sm">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{r.employeeName || r.email}</div>
+                        {r.employeeCode && <div className="text-xs text-gray-500 mt-0.5">{r.employeeCode} • {r.email}</div>}
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center text-sm bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700/50">
+                      <div className="flex-1">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Punch In</div>
+                        <div className="font-semibold text-gray-800 dark:text-gray-200">
+                          {r.punchInTime ? new Date(r.punchInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                        </div>
+                      </div>
+                      <div className="w-px h-8 bg-gray-200 dark:bg-slate-700 mx-3"></div>
+                      <div className="flex-1 text-right">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Punch Out</div>
+                        <div className="font-semibold text-gray-800 dark:text-gray-200">
+                          {r.punchOutTime ? new Date(r.punchOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {currentUserRole !== 'Admin' && (
-                    <div className="pt-2">
-                      <button
-                        onClick={() => {
-                          setRegForm({
-                            attendanceId: r._id,
-                            date: r.date,
-                            punchInTime: r.punchInTime ? new Date(r.punchInTime).toISOString().slice(0, 16) : '',
-                            punchOutTime: r.punchOutTime ? new Date(r.punchOutTime).toISOString().slice(0, 16) : '',
-                            reason: ''
-                          });
-                          setShowRegModal(true);
-                        }}
-                        className="w-full py-2.5 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded-xl transition-colors border border-blue-100 dark:border-blue-900/30"
-                      >
-                        Regularize Attendance
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                    {currentUserRole !== 'Admin' && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => {
+                            setRegForm({
+                              attendanceId: r._id,
+                              date: r.date,
+                              punchInTime: r.punchInTime ? new Date(r.punchInTime).toISOString().slice(0, 16) : '',
+                              punchOutTime: r.punchOutTime ? new Date(r.punchOutTime).toISOString().slice(0, 16) : '',
+                              reason: ''
+                            });
+                            setShowRegModal(true);
+                          }}
+                          className="w-full py-2.5 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 rounded-xl transition-colors border border-blue-100 dark:border-blue-900/30"
+                        >
+                          Regularize Attendance
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </>
         )}
@@ -1597,6 +1597,92 @@ const Dashboard = () => {
 
   const [companyDetails, setCompanyDetails] = useState(null);
 
+  // ── Notification State ──────────────────────────────────────────────────────
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const notifRef = useRef(null);
+  const notifBtnRef = useRef(null);
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch(`${config.apiUrl}/notifications?limit=15`, { headers: authHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        setNotifications(data.notifications || []);
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch { /* silent */ }
+  }, []);
+
+  // Fetch on mount + poll every 60 seconds
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        notifRef.current &&
+        !notifRef.current.contains(e.target) &&
+        notifBtnRef.current &&
+        !notifBtnRef.current.contains(e.target)
+      ) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleMarkRead = async (id) => {
+    try {
+      await fetch(`${config.apiUrl}/notifications/${id}/read`, { method: 'PATCH', headers: authHeaders() });
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch { /* silent */ }
+  };
+
+  const handleMarkAllRead = async () => {
+    setNotifLoading(true);
+    try {
+      await fetch(`${config.apiUrl}/notifications/read-all`, { method: 'PATCH', headers: authHeaders() });
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch { /* silent */ } finally { setNotifLoading(false); }
+  };
+
+  const handleDeleteNotif = async (id) => {
+    try {
+      await fetch(`${config.apiUrl}/notifications/${id}`, { method: 'DELETE', headers: authHeaders() });
+      const deleted = notifications.find(n => n._id === id);
+      setNotifications(prev => prev.filter(n => n._id !== id));
+      if (deleted && !deleted.isRead) setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch { /* silent */ }
+  };
+
+  const notifTypeIcon = (type) => {
+    const map = {
+      LEAVE_REQUEST: '📝',
+      LEAVE_APPROVED: '✅',
+      LEAVE_REJECTED: '❌',
+      REGULARIZATION_REQUEST: '⏰',
+      REGULARIZATION_APPROVED: '✅',
+      REGULARIZATION_REJECTED: '❌',
+      EXPENSE_SUBMITTED: '🧾',
+      EXPENSE_APPROVED: '💰',
+      EXPENSE_REJECTED: '❌',
+      PAYROLL_PROCESSED: '💵',
+      SHIFT_CHANGED: '🔄',
+      EMPLOYEE_ADDED: '👤',
+      SYSTEM_ALERT: '⚠️',
+    };
+    return map[type] || '🔔';
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) return;
@@ -1821,7 +1907,7 @@ const Dashboard = () => {
 
       {/* ── Main Content ── */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen md:min-h-screen">
-        <header className="mb-6 md:mb-8 flex items-center justify-between gap-4 sticky top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md z-30 pb-2 pt-2 -mx-4 px-4 md:mx-0 md:px-0 md:static md:bg-transparent">
+        <header className="mb-6 md:mb-8 flex items-center justify-between gap-4 relative z-50">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -1853,15 +1939,122 @@ const Dashboard = () => {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {/* Notification Bell */}
-            <div className="relative group">
-              <button className="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 transition-all">
+            <div className="relative">
+              <button
+                ref={notifBtnRef}
+                onClick={() => {
+                  if (!notifOpen) {
+                    fetchNotifications();
+                  }
+                  setNotifOpen(prev => !prev);
+                }}
+                className="relative p-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 transition-all"
+                title="Notifications"
+              >
                 <Bell size={18} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-800"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 border-2 border-white dark:border-slate-800 text-white text-[10px] font-bold flex items-center justify-center px-0.5">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
-              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-800 p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">Notifications</h3>
-                <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No new notifications</div>
-              </div>
+
+              <AnimatePresence>
+                {notifOpen && (
+                  <>
+                    {/* Mobile Backdrop to close on touch outside */}
+                    <div 
+                      className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 sm:hidden"
+                      onClick={() => setNotifOpen(false)}
+                    />
+                    <motion.div
+                      ref={notifRef}
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[70px] sm:top-full mt-0 sm:mt-2 w-auto sm:w-96 max-w-none sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 z-50 overflow-hidden flex flex-col max-h-[calc(100vh-90px)] sm:max-h-none"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800 shrink-0">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                          <Bell size={14} className="text-blue-500" />
+                          Notifications
+                          {unreadCount > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500 text-white">{unreadCount}</span>
+                          )}
+                        </h3>
+                        <div className="flex items-center gap-1">
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={handleMarkAllRead}
+                              disabled={notifLoading}
+                              title="Mark all as read"
+                              className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50"
+                            >
+                              <CheckCheck size={12} />
+                              All read
+                            </button>
+                          )}
+                          <button onClick={() => setNotifOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* List */}
+                      <div className="max-h-[60vh] sm:max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800/60">
+                        {notifications.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+                            <BellOff size={28} className="text-gray-300 dark:text-slate-600 mb-2" />
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No notifications yet</p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">You're all caught up!</p>
+                          </div>
+                        ) : (
+                          notifications.map(n => (
+                            <div
+                              key={n._id}
+                              onClick={() => !n.isRead && handleMarkRead(n._id)}
+                              className={`group flex items-start gap-2.5 sm:gap-3 px-3.5 sm:px-4 py-3 transition-colors cursor-pointer ${n.isRead ? 'bg-white dark:bg-slate-900' : 'bg-blue-50/60 dark:bg-blue-900/10 hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}
+                            >
+                              <div className="text-lg shrink-0 mt-0.5 select-none">{notifTypeIcon(n.type)}</div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-xs font-semibold truncate ${n.isRead ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white'}`}>{n.title}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed break-words">{n.message}</p>
+                                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                                  {new Date(n.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-center gap-1 shrink-0">
+                                {!n.isRead && <span className="w-2 h-2 rounded-full bg-blue-500 mt-1" />}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteNotif(n._id); }}
+                                  title="Delete"
+                                  className="opacity-70 sm:opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-all"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      {notifications.length > 0 && (
+                        <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-800 shrink-0">
+                          <button
+                            onClick={fetchNotifications}
+                            className="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <RefreshCw size={11} /> Refresh
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
             <button
