@@ -1,12 +1,14 @@
-# robots.txt — DigitalTechSolution
-# https://digitaltechsolution-v1.onrender.com
+# robots.txt - Digital Tech Solution
+# https://www.digitaltechsolution.in/
 
 User-agent: *
 Allow: /
 
-# Block build/source artifacts if ever exposed
+# Disallow private/admin app routes and build artifacts
+Disallow: /dashboard
+Disallow: /client-portal/dashboard
 Disallow: /src/
 Disallow: /.git/
 Disallow: /node_modules/
 
-Sitemap: https://digitaltechsolution-v1.onrender.com/sitemap.xml
+Sitemap: https://www.digitaltechsolution.in/sitemap.xml
