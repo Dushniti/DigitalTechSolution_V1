@@ -1870,10 +1870,10 @@ const Dashboard = () => {
 
       {/* ── Sidebar ── */}
       <aside className={`fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm transform transition-all duration-300 ease-in-out md:sticky md:top-0 md:h-screen shrink-0 ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'} ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'}`}>
-        <div className={`p-5 border-b border-gray-200 dark:border-slate-800 flex items-center ${isSidebarCollapsed ? 'md:justify-center md:px-0' : ''}`}>
+        <div className={`p-5 border-b border-gray-200 dark:border-slate-800 flex items-center justify-between ${isSidebarCollapsed ? 'md:justify-center md:px-0' : ''}`}>
           <a
             href="#home"
-            className="flex items-center gap-2.5"
+            className="flex items-center gap-2.5 min-w-0"
           >
             {companyDetails?.logo ? (
               <img
@@ -1891,13 +1891,20 @@ const Dashboard = () => {
                 onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/vite.svg'; }}
               />
             )}
-            <div className={`${isSidebarCollapsed ? 'md:hidden' : 'block'}`}>
+            <div className={`${isSidebarCollapsed ? 'md:hidden' : 'block'} min-w-0`}>
               <p className="text-sm font-extrabold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent leading-tight truncate max-w-[140px]" title={companyDetails?.company_name || 'DigitalTechSolution'}>
                 {companyDetails?.company_name || 'DigitalTechSolution'}
               </p>
               <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">Management Dashboard</p>
             </div>
           </a>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            title="Close Sidebar"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto overflow-x-hidden">
@@ -1958,8 +1965,8 @@ const Dashboard = () => {
       </aside>
 
       {/* ── Main Content ── */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen md:min-h-screen">
-        <header className="mb-6 md:mb-8 flex items-center justify-between gap-4 relative z-50">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto h-screen md:min-h-screen min-w-0">
+        <header className="mb-6 md:mb-8 flex items-center justify-between gap-4 relative z-20">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -2016,7 +2023,7 @@ const Dashboard = () => {
                   <>
                     {/* Mobile Backdrop to close on touch outside */}
                     <div 
-                      className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40 sm:hidden"
+                      className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-20 sm:hidden"
                       onClick={() => setNotifOpen(false)}
                     />
                     <motion.div
@@ -2025,7 +2032,7 @@ const Dashboard = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.96 }}
                       transition={{ duration: 0.15 }}
-                      className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[70px] sm:top-full mt-0 sm:mt-2 w-auto sm:w-96 max-w-none sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 z-50 overflow-hidden flex flex-col max-h-[calc(100vh-90px)] sm:max-h-none"
+                      className="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[70px] sm:top-full mt-0 sm:mt-2 w-auto sm:w-96 max-w-none sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-800 z-30 overflow-hidden flex flex-col max-h-[calc(100vh-90px)] sm:max-h-none"
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800 shrink-0">
