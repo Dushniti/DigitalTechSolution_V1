@@ -4,13 +4,32 @@ import StatCard from './widgets/StatCard';
 import { IndianRupee, CheckCircle2, Clock, Activity, Building2, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const AdminDashboard = ({ data, loading, onNavigate }) => {
+const AdminDashboard = ({ data, loading, onNavigate, selectedCompanyId, selectedCompanyName }) => {
   if (loading) return <div className="animate-pulse space-y-6">...loading...</div>;
+
+  const isFiltered = !!selectedCompanyId;
 
   return (
     <div className="space-y-8">
-      {/* SaaS Metrics (Super Admin Only) */}
-      {data?.saasMetrics && (
+
+      {/* Company Context Banner */}
+      {isFiltered && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span className="text-white text-sm font-bold">{selectedCompanyName?.charAt(0)?.toUpperCase()}</span>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-blue-500 dark:text-blue-400 uppercase tracking-wider">Viewing Company</p>
+            <p className="text-sm font-bold text-blue-800 dark:text-blue-200">{selectedCompanyName}</p>
+          </div>
+          <div className="ml-auto">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">Filtered View</span>
+          </div>
+        </div>
+      )}
+
+      {/* SaaS Metrics (Super Admin Only, shown when no specific company selected) */}
+      {data?.saasMetrics && !isFiltered && (
         <div className="mb-8">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">SaaS Platform Overview</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

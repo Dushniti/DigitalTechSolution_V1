@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { AlertCircle, RefreshCw, Clock, CalendarDays, ClipboardList, IndianRupee, Users, Building, Settings, FileText, BarChart2, MessageSquare, ChevronRight, Briefcase, ShoppingBag, Truck, Package, FileCheck, FileSignature, Layers, CreditCard, Palette, Key, Megaphone } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { AlertCircle, RefreshCw, Clock, CalendarDays, ClipboardList, IndianRupee, Users, Building, Settings, FileText, BarChart2, MessageSquare, ChevronRight, Briefcase, ShoppingBag, Truck, Package, FileCheck, FileSignature, Layers, CreditCard, Palette, Key, Megaphone, Building2, ChevronDown, Search } from 'lucide-react';
 import config from '../../config';
 
 import EmployeeDashboard from './EmployeeDashboard';
@@ -20,6 +20,23 @@ const DashboardOverview = ({ onNavigate }) => {
   const [showAllModules, setShowAllModules] = useState(false);
   const [columns, setColumns] = useState(6);
 
+  // ── Company Filter State (Admin only) ──────────────────────────────────────
+  const [companies, setCompanies] = useState([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+  const [selectedCompanyName, setSelectedCompanyName] = useState('All Companies');
+  const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
+  const [companySearch, setCompanySearch] = useState('');
+  const dropdownRef = useRef(null);
+  const isAdmin = () => {
+    const token = getToken();
+    if (!token) return false;
+    try {
+      const actual = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+      const payload = JSON.parse(atob(actual.split('.')[1]));
+      return payload.role === 'Admin';
+    } catch { return false; }
+  };
+
   useEffect(() => {
     const updateColumns = () => {
       if (window.innerWidth >= 1280) setColumns(6);
@@ -33,13 +50,37 @@ const DashboardOverview = ({ onNavigate }) => {
     return () => window.removeEventListener('resize', updateColumns);
   }, []);
 
-  const fetchDashboardData = async () => {
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setCompanyDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Fetch companies list (Admin only)
+  const fetchCompanies = async () => {
+    if (!isAdmin()) return;
+    try {
+      const res = await fetch(`${config.apiUrl}/companies`, { headers: authHeaders() });
+      const result = await res.json();
+      if (result.success) setCompanies(result.data || []);
+    } catch (e) {
+      console.error('Failed to fetch companies:', e);
+    }
+  };
+
+  const fetchDashboardData = async (companyId = selectedCompanyId) => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${config.apiUrl}/dashboard-aggregated`, {
-        headers: authHeaders(),
-      });
+      const url = companyId
+        ? `${config.apiUrl}/dashboard-aggregated?companyId=${companyId}`
+        : `${config.apiUrl}/dashboard-aggregated`;
+      const res = await fetch(url, { headers: authHeaders() });
       const result = await res.json();
       if (result.success) {
         setData(result.data);
@@ -55,6 +96,7 @@ const DashboardOverview = ({ onNavigate }) => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchCompanies();
   }, []);
 
   const renderDashboard = () => {
@@ -64,7 +106,7 @@ const DashboardOverview = ({ onNavigate }) => {
     const role = data.role?.toLowerCase() || '';
     
     if (role === 'super_admin' || role === 'admin') {
-      return <AdminDashboard data={data} loading={loading} onNavigate={onNavigate} />;
+      return <AdminDashboard data={data} loading={loading} onNavigate={onNavigate} selectedCompanyId={selectedCompanyId} selectedCompanyName={selectedCompanyName} />;
     } else if (role === 'hr') {
       return <HRDashboard data={data} loading={loading} onNavigate={onNavigate} />;
     } else if (role === 'manager') {
@@ -72,6 +114,110 @@ const DashboardOverview = ({ onNavigate }) => {
     } else {
       return <EmployeeDashboard data={data} loading={loading} onNavigate={onNavigate} />;
     }
+  };
+
+  // Company filter dropdown (Admin only)
+  const renderCompanyFilter = () => {
+    if (!isAdmin() || companies.length === 0) return null;
+
+    const filtered = companies.filter(c =>
+      c.company_name?.toLowerCase().includes(companySearch.toLowerCase())
+    );
+
+    const handleSelect = (id, name) => {
+      setSelectedCompanyId(id);
+      setSelectedCompanyName(name);
+      setCompanyDropdownOpen(false);
+      setCompanySearch('');
+      fetchDashboardData(id);
+    };
+
+    return (
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setCompanyDropdownOpen(prev => !prev)}
+          className="flex items-center gap-2 pl-3.5 pr-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 transition-all text-sm font-semibold text-gray-700 dark:text-gray-200 min-w-[180px]"
+        >
+          <Building2 size={15} className="text-blue-500 flex-shrink-0" />
+          <span className="truncate max-w-[130px]">{selectedCompanyName}</span>
+          <ChevronDown size={15} className={`ml-auto text-gray-400 transition-transform duration-200 flex-shrink-0 ${companyDropdownOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {companyDropdownOpen && (
+          <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+            {/* Search box */}
+            <div className="p-2 border-b border-gray-100 dark:border-slate-800">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
+                <Search size={14} className="text-gray-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search company..."
+                  value={companySearch}
+                  onChange={e => setCompanySearch(e.target.value)}
+                  className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 outline-none"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Options */}
+            <div className="max-h-60 overflow-y-auto py-1">
+              {/* All Companies option */}
+              <button
+                onClick={() => handleSelect('', 'All Companies')}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                  selectedCompanyId === ''
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-semibold'
+                    : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center flex-shrink-0">
+                  <Building2 size={14} className="text-white" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">All Companies</div>
+                  <div className="text-xs text-gray-400">Platform-wide view</div>
+                </div>
+                {selectedCompanyId === '' && <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full" />}
+              </button>
+
+              {/* Divider */}
+              <div className="my-1 border-t border-gray-100 dark:border-slate-800" />
+
+              {filtered.length === 0 ? (
+                <div className="px-4 py-6 text-center text-sm text-gray-400">No companies found</div>
+              ) : (
+                filtered.map(c => (
+                  <button
+                    key={c._id}
+                    onClick={() => handleSelect(c._id, c.company_name)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                      selectedCompanyId === c._id
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-semibold'
+                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-bold">
+                        {c.company_name?.charAt(0)?.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium truncate max-w-[170px]">{c.company_name}</div>
+                      <div className={`text-xs font-medium ${
+                        c.status === 'Active' ? 'text-green-500' :
+                        c.status === 'Suspended' ? 'text-red-500' : 'text-gray-400'
+                      }`}>{c.status || 'Unknown'}</div>
+                    </div>
+                    {selectedCompanyId === c._id && <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderLaunchpad = () => {
@@ -373,20 +519,24 @@ const DashboardOverview = ({ onNavigate }) => {
   return (
     <div className="w-full">
       {(!data || data.role?.toLowerCase() !== 'employee') && (
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white capitalize">Dashboard</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Welcome to Digital Tech Solution, <span className="font-semibold text-gray-700 dark:text-gray-300">{data?.userName ? data.userName.split(' ')[0] : 'User'}</span>!
             </p>
           </div>
-          <button
-            onClick={fetchDashboardData}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Company Filter Dropdown — Admin only */}
+            {renderCompanyFilter()}
+            <button
+              onClick={() => fetchDashboardData()}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+          </div>
         </div>
       )}
 
