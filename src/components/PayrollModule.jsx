@@ -318,8 +318,8 @@ const SalarySetupTab = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // 1. Save profile
-      await fetch(`${config.apiUrl}/users/${formData.userId}/profile`, {
+      // 1. Save profile fields
+      const profileRes = await fetch(`${config.apiUrl}/users/${formData.userId}/profile`, {
         method: 'PUT', headers: authHeaders(),
         body: JSON.stringify({
           name: formData.name, department: formData.department,
@@ -327,6 +327,13 @@ const SalarySetupTab = () => {
           employeeCode: formData.employeeCode,
         }),
       });
+      const profileData = await profileRes.json();
+      if (!profileData.success) {
+        showToast(profileData.message || 'Profile update failed.', 'error');
+        setSaving(false);
+        return;
+      }
+
       // 2. Save salary structure
       const res = await fetch(`${config.apiUrl}/payroll/salary-structure`, {
         method: 'POST', headers: authHeaders(),
@@ -346,6 +353,7 @@ const SalarySetupTab = () => {
       setSaving(false);
     }
   };
+
 
   const filtered = users.filter(u =>
     (u.email || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -526,6 +534,7 @@ const GenerateTab = () => {
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [recalculatingId, setRecalculatingId] = useState(null);
   const [payModal, setPayModal] = useState(null); // payroll record
   const [payForm, setPayForm] = useState({ status: 'Paid', transactionId: '', paymentRemarks: '' });
   const [payLoading, setPayLoading] = useState(false);
@@ -598,7 +607,23 @@ const GenerateTab = () => {
     finally { setPayLoading(false); }
   };
 
+  const handleRecalculate = async (id) => {
+    setRecalculatingId(id);
+    try {
+      const res = await fetch(`${config.apiUrl}/payroll/recalculate/${id}`, {
+        method: 'PUT', headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`✓ Recalculated. New Net: ₹${data.netSalary?.toLocaleString('en-IN')}`);
+        fetchRecords();
+      } else showToast(data.message || 'Recalculate failed.', 'error');
+    } catch { showToast('Network error.', 'error'); }
+    finally { setRecalculatingId(null); }
+  };
+
   const totalNet = records.reduce((s, r) => s + (r.netSalary || 0), 0);
+
 
   return (
     <div className="space-y-5">
@@ -750,10 +775,16 @@ const GenerateTab = () => {
                           <CreditCard size={14} />
                         </button>
                         {r.paymentStatus !== 'Paid' && (
-                          <button onClick={() => handleDelete(r._id)} disabled={deletingId === r._id}
-                            className="p-1.5 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 transition-colors" title="Delete">
-                            {deletingId === r._id ? <div className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" /> : <Trash2 size={14} />}
-                          </button>
+                          <>
+                            <button onClick={() => handleRecalculate(r._id)} disabled={recalculatingId === r._id}
+                              className="p-1.5 rounded-lg text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 transition-colors" title="Recalculate Salary">
+                              {recalculatingId === r._id ? <div className="w-3.5 h-3.5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /> : <RefreshCw size={14} />}
+                            </button>
+                            <button onClick={() => handleDelete(r._id)} disabled={deletingId === r._id}
+                              className="p-1.5 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 transition-colors" title="Delete">
+                              {deletingId === r._id ? <div className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" /> : <Trash2 size={14} />}
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
