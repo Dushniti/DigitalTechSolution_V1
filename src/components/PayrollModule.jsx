@@ -21,7 +21,7 @@ import {
   RefreshCw, AlertCircle, IndianRupee, Users, CheckCircle2, Clock,
   XCircle, TrendingUp, Download, Printer, Eye, Trash2, Edit2,
   Save, X, ChevronDown, ChevronUp, Building2, CreditCard, Search,
-  Calendar, Filter, FileDown, AlertTriangle
+  Calendar, Filter, FileDown, AlertTriangle, MoreVertical
 } from 'lucide-react';
 import config from '../config';
 
@@ -538,6 +538,7 @@ const GenerateTab = () => {
   const [payModal, setPayModal] = useState(null); // payroll record
   const [payForm, setPayForm] = useState({ status: 'Paid', transactionId: '', paymentRemarks: '' });
   const [payLoading, setPayLoading] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const { showToast, ToastEl } = useToast();
 
   const fetchRecords = async () => {
@@ -630,25 +631,27 @@ const GenerateTab = () => {
       {ToastEl}
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm p-4">
-        <Calendar size={16} className="text-blue-500" />
-        <select value={month} onChange={e => setMonth(Number(e.target.value))}
-          className="px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
-          {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-        </select>
-        <input type="number" value={year} min={2020} max={2099}
-          onChange={e => setYear(Number(e.target.value))}
-          className="w-24 px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-        />
-        <button onClick={fetchRecords} className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-          <RefreshCw size={14} className={loadingRecords ? 'animate-spin' : ''} />
-        </button>
-        <div className="ml-auto flex gap-2">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm p-4">
+        <div className="flex items-center gap-3">
+          <Calendar size={16} className="text-blue-500 hidden sm:block" />
+          <select value={month} onChange={e => setMonth(Number(e.target.value))}
+            className="flex-1 sm:flex-none px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+          </select>
+          <input type="number" value={year} min={2020} max={2099}
+            onChange={e => setYear(Number(e.target.value))}
+            className="w-24 flex-1 sm:flex-none px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-xl bg-gray-50 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          />
+          <button onClick={fetchRecords} className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors shrink-0">
+            <RefreshCw size={14} className={loadingRecords ? 'animate-spin' : ''} />
+          </button>
+        </div>
+        <div className="sm:ml-auto flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto border-t sm:border-0 border-gray-100 dark:border-slate-800 pt-3 sm:pt-0">
           {records.length > 0 && <span className="self-center text-sm font-semibold text-gray-600 dark:text-gray-400">Total: <span className="text-emerald-600 dark:text-emerald-400">{fmt(totalNet)}</span></span>}
           <button
             onClick={() => setShowConfirm(true)}
             disabled={generating}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-500 hover:to-cyan-400 disabled:opacity-60 shadow-sm transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-500 hover:to-cyan-400 disabled:opacity-60 shadow-sm transition-all"
           >
             {generating ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Zap size={15} />}
             {generating ? 'Generating...' : 'Generate Payroll'}
@@ -734,8 +737,73 @@ const GenerateTab = () => {
             <p className="text-sm text-gray-400 mt-1">Click "Generate Payroll" to create records.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <>
+            {/* Mobile View: Cards */}
+            <div className="block sm:hidden p-3 sm:p-0 space-y-4 sm:space-y-0 bg-slate-50/50 dark:bg-slate-900/50">
+              {records.map(r => (
+                <div key={r._id} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm relative">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">{r.employeeName}</p>
+                      <p className="text-[10px] text-gray-500">{r.department}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-wider uppercase ${STATUS_STYLES[r.paymentStatus] || STATUS_STYLES.Pending}`}>
+                        {r.paymentStatus}
+                      </span>
+                      <div className="relative">
+                        <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === r._id ? null : r._id); }}
+                          className="p-1 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors">
+                          <MoreVertical size={16} />
+                        </button>
+                        {openMenuId === r._id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}></div>
+                            <div className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-xl rounded-xl py-1.5 z-20 text-sm overflow-hidden">
+                               <button onClick={() => { setOpenMenuId(null); setPayModal(r); setPayForm({ status: r.paymentStatus || 'Paid', transactionId: r.transactionId || '', paymentRemarks: r.paymentRemarks || '' }); }}
+                                 className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-blue-600 flex items-center gap-2"><CreditCard size={14}/> Update</button>
+                               {r.paymentStatus !== 'Paid' && (
+                                 <>
+                                   <button onClick={() => { setOpenMenuId(null); handleRecalculate(r._id); }} disabled={recalculatingId === r._id}
+                                     className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-amber-600 flex items-center gap-2">
+                                     {recalculatingId === r._id ? <div className="w-3.5 h-3.5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /> : <RefreshCw size={14}/>} Recalculate
+                                   </button>
+                                   <button onClick={() => { setOpenMenuId(null); handleDelete(r._id); }} disabled={deletingId === r._id}
+                                     className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-red-600 flex items-center gap-2">
+                                     {deletingId === r._id ? <div className="w-3.5 h-3.5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" /> : <Trash2 size={14}/>} Delete
+                                   </button>
+                                 </>
+                               )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center bg-gray-50 dark:bg-slate-800/50 p-2 rounded-lg border border-gray-100 dark:border-slate-700">
+                    <div className="flex gap-4">
+                      <div>
+                        <p className="text-[9px] text-gray-400 font-semibold uppercase">Gross</p>
+                        <p className="font-semibold text-gray-700 dark:text-gray-300 text-xs">{fmt(r.grossSalary)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-gray-400 font-semibold uppercase">Ded.</p>
+                        <p className="font-semibold text-red-500 text-xs">{fmt(r.totalDeductions)}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] text-cyan-600 font-bold uppercase">Net Pay</p>
+                      <p className="font-black text-emerald-600 dark:text-emerald-400 text-base leading-none">{fmt(r.netSalary)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>
@@ -793,6 +861,7 @@ const GenerateTab = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>
@@ -1032,6 +1101,7 @@ const SlipsTab = () => {
   const [search, setSearch] = useState('');
   const [viewSlip, setViewSlip] = useState(null);
   const [slipLoading, setSlipLoading] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const { showToast, ToastEl } = useToast();
 
   const fetchRecords = async () => {
@@ -1174,8 +1244,55 @@ const SlipsTab = () => {
             <p className="text-gray-500 font-medium">No salary slips found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <>
+            {/* Mobile View: Cards */}
+            <div className="block sm:hidden p-3 sm:p-0 space-y-4 sm:space-y-0 bg-slate-50/50 dark:bg-slate-900/50">
+              {filtered.map(r => (
+                <div key={r._id} className="p-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm relative">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">{r.employeeName}</p>
+                      <p className="text-[10px] text-gray-500">{r.email}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-wider uppercase ${STATUS_STYLES[r.paymentStatus] || STATUS_STYLES.Pending}`}>
+                        {r.paymentStatus}
+                      </span>
+                      <div className="relative">
+                        <button onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === r._id ? null : r._id); }}
+                          className="p-1 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors">
+                          <MoreVertical size={16} />
+                        </button>
+                        {openMenuId === r._id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); }}></div>
+                            <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 shadow-xl rounded-xl py-1.5 z-20 text-sm overflow-hidden">
+                               <button onClick={() => { setOpenMenuId(null); handleViewSlip(r._id); }} disabled={slipLoading}
+                                 className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700 text-blue-600 flex items-center gap-2"><Eye size={14}/> View Slip</button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center bg-gray-50 dark:bg-slate-800/50 p-2 rounded-lg border border-gray-100 dark:border-slate-700">
+                    <div>
+                      <p className="text-[9px] text-gray-400 font-semibold uppercase">Period</p>
+                      <p className="font-semibold text-gray-700 dark:text-gray-300 text-xs">{MONTHS[r.month-1]} {r.year}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] text-cyan-600 font-bold uppercase">Net Salary</p>
+                      <p className="font-black text-emerald-600 dark:text-emerald-400 text-base leading-none">{fmt(r.netSalary)}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase">Employee</th>
@@ -1210,6 +1327,7 @@ const SlipsTab = () => {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>
