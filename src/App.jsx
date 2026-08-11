@@ -16,6 +16,7 @@ import Career from './components/Career';
 import OurTeam from './components/OurTeam';
 import Pricing from './components/Pricing';
 import Dashboard from './components/Dashboard';
+import IndependenceDayPopup from './components/IndependenceDayPopup';
 
 import PublicRegistration from './pages/PublicRegistration';
 import ClientPortalLogin from './pages/ClientPortalLogin';
@@ -193,6 +194,7 @@ function App() {
 
   return (
     <div className="App">
+      {!isDashboard && !isRegisterPage && !isClientPortalLogin && !isClientPortalDashboard && <IndependenceDayPopup />}
       {!isDashboard && !isRegisterPage && !isClientPortalLogin && !isClientPortalDashboard && <Navbar theme={theme} toggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))} />}
       <main>{renderPageContent()}</main>
       {!isDashboard && !isRegisterPage && !isClientPortalLogin && !isClientPortalDashboard && <Footer />}
