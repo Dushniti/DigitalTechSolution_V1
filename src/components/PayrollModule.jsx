@@ -833,112 +833,189 @@ const SalarySlipPrint = ({ slip }) => {
   const companyLogo = companyInfo?.logo;
 
   return (
-    <div id="salary-slip-print-area" className="bg-white text-gray-900 rounded-2xl border border-gray-200 shadow-sm p-8 max-w-3xl mx-auto font-sans relative overflow-hidden">
-      {/* Decorative top border */}
-      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-cyan-500" />
+    <div id="salary-slip-print-area" className="bg-white text-gray-800 border-2 border-blue-100 p-5 sm:p-10 max-w-4xl mx-auto font-sans relative overflow-hidden shadow-2xl rounded-2xl">
+      {/* Decorative Top Line */}
+      <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-cyan-400" />
 
-      {/* Company Header */}
-      <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-gray-100">
-        <div className="flex items-center gap-5">
-          {companyLogo ? (
-            <img src={companyLogo} alt={companyName} className="h-16 w-auto object-contain rounded-lg" />
-          ) : (
-            <div className="h-14 w-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-md shadow-blue-200">
-              {companyName.substring(0, 2).toUpperCase()}
+      {/* Background Watermark */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none z-0 overflow-hidden">
+        <div className="text-6xl sm:text-9xl font-black uppercase tracking-widest text-blue-900 -rotate-45 whitespace-nowrap">{companyName.substring(0, 4)}</div>
+      </div>
+
+      <div className="relative z-10">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start border-b-2 border-blue-100 pb-6 mb-6 gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            {companyLogo ? (
+              <img src={companyLogo} alt={companyName} className="h-16 w-auto object-contain" />
+            ) : (
+              <div className="h-16 w-16 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold tracking-wider shadow-md shrink-0">
+                {companyName.substring(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight uppercase">{companyName}</h1>
+              <p className="text-xs sm:text-sm font-bold tracking-widest uppercase mt-1 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">Payslip for {monthName} {year}</p>
             </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{companyName}</h1>
-            <p className="text-sm text-gray-500 mt-1 font-semibold uppercase tracking-widest text-blue-600">Payslip for {monthName} {year}</p>
+          </div>
+          <div className="sm:text-right shrink-0">
+            <span className="inline-block border border-blue-200 bg-blue-50 text-blue-600 text-[10px] font-bold tracking-[0.2em] px-3 py-1.5 uppercase rounded-lg shadow-sm">
+              Private & Confidential
+            </span>
           </div>
         </div>
-        <div className="text-right">
-          <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-gray-50 text-gray-500 font-bold border border-gray-200 uppercase tracking-widest text-xs shadow-sm">
-            CONFIDENTIAL
+
+        {/* Employee Info Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-x-12 mb-8">
+          <div className="space-y-3">
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Employee Name</span>
+              <span className="text-sm font-bold text-gray-900">{employeeName}</span>
+            </div>
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Employee ID</span>
+              <span className="text-sm font-medium text-gray-700">{userInfo?.employeeCode || 'N/A'}</span>
+            </div>
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Designation</span>
+              <span className="text-sm font-medium text-gray-700">{designation || 'N/A'}</span>
+            </div>
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Department</span>
+              <span className="text-sm font-medium text-gray-700">{department || 'N/A'}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Joining Date</span>
+              <span className="text-sm font-medium text-gray-700">{userInfo?.joiningDate ? new Date(userInfo.joiningDate).toLocaleDateString('en-IN') : 'N/A'}</span>
+            </div>
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Bank Name</span>
+              <span className="text-sm font-medium text-gray-700">{ss?.bankName || 'N/A'}</span>
+            </div>
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">Account No</span>
+              <span className="text-sm font-medium text-gray-700">{ss?.accountNumber || 'N/A'}</span>
+            </div>
+            <div className="flex flex-wrap justify-between border-b border-gray-100 pb-1.5 gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase">IFSC Code</span>
+              <span className="text-sm font-medium text-gray-700">{ss?.ifscCode || 'N/A'}</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Employee Info */}
-      <div className="grid grid-cols-2 gap-6 mb-8 bg-gray-50/50 p-5 rounded-xl border border-gray-100">
-        <div className="space-y-2">
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Employee Name</span> <span className="font-bold text-gray-800">{employeeName}</span></p>
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Employee ID</span> <span className="font-medium text-gray-700">{userInfo?.employeeCode || 'N/A'}</span></p>
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Department</span> <span className="font-medium text-gray-700">{department || 'N/A'}</span></p>
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Designation</span> <span className="font-medium text-gray-700">{designation || 'N/A'}</span></p>
+        {/* Attendance Summary */}
+        <div className="mb-8 border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-blue-50/50 px-4 py-2.5 border-b border-blue-100 text-center sm:text-left">
+            <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wider">Attendance Details</h3>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-blue-100 text-center py-4">
+            <div className="py-2 sm:py-0">
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Total Days</p>
+              <p className="text-lg font-black text-gray-800">{att?.totalWorkingDays || 0}</p>
+            </div>
+            <div className="py-2 sm:py-0 border-l border-blue-100 sm:border-0">
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Worked Days</p>
+              <p className="text-lg font-black text-emerald-600">{att?.presentFullDays || 0}</p>
+            </div>
+            <div className="py-2 sm:py-0 border-t border-blue-100 sm:border-t-0">
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Leaves/Absent</p>
+              <p className="text-lg font-black text-red-500">{att?.absentDays || 0}</p>
+            </div>
+            <div className="py-2 sm:py-0 border-l border-t border-blue-100 sm:border-t-0 sm:border-l-0">
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Paid Leaves</p>
+              <p className="text-lg font-black text-amber-500">{att?.paidLeaveDays || 0}</p>
+            </div>
+          </div>
         </div>
-        <div className="space-y-2">
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Email</span> <span className="font-medium text-gray-700">{email}</span></p>
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Joining Date</span> <span className="font-medium text-gray-700">{userInfo?.joiningDate || 'N/A'}</span></p>
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Bank Name</span> <span className="font-medium text-gray-700">{ss?.bankName || 'N/A'}</span></p>
-          <p className="flex justify-between"><span className="font-semibold text-gray-500 text-xs uppercase tracking-wider">Account No</span> <span className="font-medium text-gray-700">{ss?.accountNumber || 'N/A'}</span></p>
-        </div>
-      </div>
 
-      {/* Attendance */}
-      <div className="bg-gray-50 rounded-xl p-4 mb-5">
-        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Attendance Summary</h3>
-        <div className="grid grid-cols-4 gap-3 text-sm text-center">
-          <div><p className="font-bold text-gray-900">{att?.totalWorkingDays}</p><p className="text-xs text-gray-500">Working Days</p></div>
-          <div><p className="font-bold text-emerald-700">{att?.presentFullDays}</p><p className="text-xs text-gray-500">Present</p></div>
-          <div><p className="font-bold text-red-600">{att?.absentDays}</p><p className="text-xs text-gray-500">Absent</p></div>
-          <div><p className="font-bold text-amber-600">{att?.paidLeaveDays}</p><p className="text-xs text-gray-500">Paid Leaves</p></div>
-        </div>
-      </div>
+        {/* Earnings & Deductions Tables */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-0 md:border md:border-gray-200 mb-8 rounded-xl overflow-hidden md:shadow-sm">
+          {/* Earnings */}
+          <div className="md:border-r border-gray-200 border border-gray-200 md:border-none rounded-xl md:rounded-none overflow-hidden shadow-sm md:shadow-none">
+            <div className="bg-emerald-50/50 px-4 py-3 border-b border-gray-200">
+              <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-widest text-center">Earnings</h3>
+            </div>
+            <div className="p-0 overflow-x-auto">
+              <table className="w-full text-sm">
+                <tbody>
+                  {earnings.map(e => (
+                    <tr key={e.label} className="border-b border-gray-100 last:border-0">
+                      <td className="py-3 px-3 sm:px-5 text-gray-600 font-medium whitespace-nowrap">{e.label}</td>
+                      <td className="py-3 px-3 sm:px-5 text-right text-gray-900 font-semibold">{fmt(e.value)}</td>
+                    </tr>
+                  ))}
+                  {/* Fill empty rows if deductions has more - hidden on mobile */}
+                  {Array.from({ length: Math.max(0, deductionsList.length - earnings.length) }).map((_, i) => (
+                    <tr key={`empty-earn-${i}`} className="hidden md:table-row border-b border-gray-100 last:border-0"><td className="py-3 px-5 text-transparent select-none">.</td><td className="py-3 px-5 text-transparent select-none">.</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-emerald-50 px-3 sm:px-5 py-4 border-t border-gray-200 flex justify-between items-center">
+              <span className="text-[10px] sm:text-xs font-bold text-emerald-800 uppercase tracking-widest">Total Earnings</span>
+              <span className="text-base sm:text-lg font-black text-emerald-700">{fmt(grossSalary)}</span>
+            </div>
+          </div>
 
-      {/* Earnings / Deductions */}
-      <div className="grid grid-cols-2 gap-4 mb-5">
-        <div>
-          <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Earnings</h3>
-          <table className="w-full text-sm">
-            <tbody>
-              {earnings.map(e => (
-                <tr key={e.label} className="border-b border-gray-100">
-                  <td className="py-1.5 text-gray-600">{e.label}</td>
-                  <td className="py-1.5 text-right font-medium">{fmt(e.value)}</td>
-                </tr>
-              ))}
-              <tr className="font-bold border-t-2 border-gray-200">
-                <td className="pt-2 text-emerald-700">Gross Total</td>
-                <td className="pt-2 text-right text-emerald-700">{fmt(grossSalary)}</td>
-              </tr>
-            </tbody>
-          </table>
+          {/* Deductions */}
+          <div className="border border-gray-200 md:border-none rounded-xl md:rounded-none overflow-hidden shadow-sm md:shadow-none">
+            <div className="bg-red-50/50 px-4 py-3 border-b border-gray-200">
+              <h3 className="text-xs font-bold text-red-700 uppercase tracking-widest text-center">Deductions</h3>
+            </div>
+            <div className="p-0 overflow-x-auto">
+              <table className="w-full text-sm">
+                <tbody>
+                  {deductionsList.map(d => (
+                    <tr key={d.label} className="border-b border-gray-100 last:border-0">
+                      <td className="py-3 px-3 sm:px-5 text-gray-600 font-medium whitespace-nowrap">{d.label}</td>
+                      <td className="py-3 px-3 sm:px-5 text-right text-red-500 font-semibold">{fmt(d.value)}</td>
+                    </tr>
+                  ))}
+                  {/* Fill empty rows if earnings has more - hidden on mobile */}
+                  {Array.from({ length: Math.max(0, earnings.length - deductionsList.length) }).map((_, i) => (
+                    <tr key={`empty-ded-${i}`} className="hidden md:table-row border-b border-gray-100 last:border-0"><td className="py-3 px-5 text-transparent select-none">.</td><td className="py-3 px-5 text-transparent select-none">.</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-red-50 px-3 sm:px-5 py-4 border-t border-gray-200 flex justify-between items-center">
+              <span className="text-[10px] sm:text-xs font-bold text-red-800 uppercase tracking-widest">Total Deductions</span>
+              <span className="text-base sm:text-lg font-black text-red-600">{fmt(totalDeductions)}</span>
+            </div>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Deductions</h3>
-          <table className="w-full text-sm">
-            <tbody>
-              {deductionsList.map(d => (
-                <tr key={d.label} className="border-b border-gray-100">
-                  <td className="py-1.5 text-gray-600">{d.label}</td>
-                  <td className="py-1.5 text-right font-medium text-red-500">{fmt(d.value)}</td>
-                </tr>
-              ))}
-              <tr className="font-bold border-t-2 border-gray-200">
-                <td className="pt-2 text-red-600">Total Deductions</td>
-                <td className="pt-2 text-right text-red-600">{fmt(totalDeductions)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      {/* Net Pay */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl p-4 flex items-center justify-between">
-        <div>
-          <p className="text-blue-100 text-sm font-medium">Net Payable Salary</p>
-          <p className="text-white text-2xl font-extrabold">{fmt(netSalary)}</p>
+        {/* Net Pay & Signature */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 mb-6 bg-gradient-to-r from-blue-600 to-cyan-500 p-4 sm:p-6 rounded-2xl shadow-lg text-center sm:text-left">
+          <div className="w-full sm:w-1/2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-100 mb-1.5">Amount in words</p>
+            <p className="text-xs sm:text-sm font-semibold text-white">
+              Rupees {netSalary.toLocaleString('en-IN')} Only
+            </p>
+          </div>
+          
+          <div className="w-full sm:w-1/2 sm:text-right border-t border-blue-400/30 sm:border-0 pt-4 sm:pt-0 w-full">
+            <p className="text-[10px] font-bold text-cyan-200 uppercase tracking-widest mb-0.5">Net Payable Salary</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{fmt(netSalary)}</h2>
+          </div>
         </div>
-        <div className="text-right">
-          <p className="text-blue-100 text-xs">Payment Status</p>
-          <p className="text-white font-bold text-sm">{paymentStatus}</p>
-          {paymentDate && <p className="text-blue-200 text-xs">{new Date(paymentDate).toLocaleDateString('en-IN')}</p>}
-          {transactionId && <p className="text-blue-200 text-xs">TXN: {transactionId}</p>}
-        </div>
-      </div>
 
-      <p className="text-center text-xs text-gray-400 mt-5">This is a computer-generated salary slip and does not require a signature.</p>
+        {/* Footer Notes */}
+        <div className="flex flex-col sm:flex-row justify-between items-center text-[10px] sm:text-xs text-gray-500 font-medium gap-3 sm:gap-0 text-center sm:text-left">
+          <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
+            Status: 
+            <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-700 font-bold uppercase text-[10px] tracking-wider border border-gray-200">
+              {paymentStatus}
+            </span> 
+            {transactionId ? <span className="ml-0 sm:ml-2 text-gray-400 whitespace-nowrap">TXN: {transactionId}</span> : ''}
+          </div>
+          <p>Computer-generated document. No signature required.</p>
+        </div>
+
+      </div>
     </div>
   );
 };
@@ -991,11 +1068,11 @@ const SlipsTab = () => {
           <title>Salary Slip</title>
           <script src="https://cdn.tailwindcss.com"></script>
           <style>
-            @page { margin: 1cm; }
+            @page { size: A4 portrait; margin: 10mm; }
             body { 
               font-family: 'Inter', system-ui, sans-serif; 
               margin: 0; 
-              padding: 20px; 
+              padding: 0; 
               background: white; 
               -webkit-print-color-adjust: exact !important; 
               print-color-adjust: exact !important; 
@@ -1004,7 +1081,21 @@ const SlipsTab = () => {
               box-shadow: none !important;
               border: 1px solid #e5e7eb !important;
               max-width: 100% !important;
+              margin: 0 auto !important;
+              padding: 24px !important;
             }
+            @media print {
+              /* Compress tailwind margins to guarantee single-page fit */
+              .mb-8 { margin-bottom: 16px !important; }
+              .mb-6 { margin-bottom: 12px !important; }
+              .pb-6 { padding-bottom: 12px !important; }
+              .py-4 { padding-top: 10px !important; padding-bottom: 10px !important; }
+              .py-3 { padding-top: 8px !important; padding-bottom: 8px !important; }
+              /* Force height to prevent empty second page */
+              html, body { height: max-content; }
+            }
+            /* Hide scrollbars during print */
+            ::-webkit-scrollbar { display: none; }
           </style>
         </head>
         <body>
@@ -1053,20 +1144,20 @@ const SlipsTab = () => {
       {/* Slip View Modal */}
       <AnimatePresence>
         {viewSlip && (
-          <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl my-8">
-              <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-slate-700">
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl my-4 sm:my-8 overflow-hidden">
+              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-900 z-50">
                 <h3 className="font-bold text-gray-900 dark:text-white">Salary Slip</h3>
                 <div className="flex gap-2">
                   <button onClick={handlePrint}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 transition-colors">
-                    <Printer size={15} /> Print
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 transition-colors">
+                    <Printer size={15} /> <span className="hidden sm:inline">Print</span>
                   </button>
                   <button onClick={() => setViewSlip(null)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 transition-colors"><X size={18} /></button>
                 </div>
               </div>
-              <div className="p-5">
+              <div className="p-3 sm:p-5">
                 <SalarySlipPrint slip={viewSlip} />
               </div>
             </motion.div>
