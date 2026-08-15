@@ -7,12 +7,12 @@ const logoSrc =
   'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
 
 const navItems = [
-  { name: 'Home', href: '#home' },
-  { name: 'About Us', href: '#about' },
-  { name: 'Services', href: '#services' },
-  { name: 'Portfolio', href: '#portfolio' },
-  { name: 'Contact', href: '#contact' },
-  // { name: 'Pricing',   href: '#/pricing' },
+  { name: 'Home',      href: '/#home',      sectionId: 'home' },
+  { name: 'About Us',  href: '/#about',     sectionId: 'about' },
+  { name: 'Services',  href: '/#services',  sectionId: 'services' },
+  { name: 'Portfolio', href: '/#portfolio', sectionId: 'portfolio' },
+  { name: 'Contact',   href: '/#contact',   sectionId: 'contact' },
+  // { name: 'Pricing',   href: '/pricing' },
 ];
 
 /* Slide-in mobile menu variants */
@@ -63,31 +63,26 @@ const Navbar = ({ theme, toggleTheme }) => {
   // Handle /login URL for opening the modal automatically
   useEffect(() => {
     const handleUrlLogin = () => {
-      const isLoginRoute = window.location.pathname === '/login' || window.location.hash === '#login' || window.location.hash === '#/login';
-      
+      const isLoginRoute = window.location.pathname === '/login';
+
       if (isLoginRoute) {
         if (localStorage.getItem('adminToken')) {
           // If already logged in, redirect to dashboard
-          if (window.location.pathname === '/login') {
-            window.history.pushState({}, '', '/');
-          }
-          window.location.hash = 'dashboard';
+          window.history.pushState({}, '', '/dashboard');
+          window.dispatchEvent(new PopStateEvent('popstate'));
         } else {
           // Not logged in, open modal
           setIsLoginModalOpen(true);
         }
-      } else if (!window.location.pathname.includes('/login') && !window.location.hash.includes('login')) {
-        // Only close if we are truly navigating away, though usually user closes modal manually
+      } else if (!window.location.pathname.includes('/login')) {
         setIsLoginModalOpen(false);
       }
     };
 
     handleUrlLogin();
     window.addEventListener('popstate', handleUrlLogin);
-    window.addEventListener('hashchange', handleUrlLogin);
     return () => {
       window.removeEventListener('popstate', handleUrlLogin);
-      window.removeEventListener('hashchange', handleUrlLogin);
     };
   }, []);
 
@@ -107,7 +102,8 @@ const Navbar = ({ theme, toggleTheme }) => {
     sessionStorage.removeItem('_dashRedirected');
     setIsLoggedIn(false);
     setProfileOpen(false);
-    window.location.hash = '';
+    window.history.pushState({}, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   /* ── Scroll detection ── */
@@ -138,6 +134,31 @@ const Navbar = ({ theme, toggleTheme }) => {
   const handleNavClick = (name) => {
     setActive(name);
     setIsOpen(false);
+  };
+
+  // Smart section navigator: scrolls on home, navigates+scrolls from other pages
+  const handleSectionClick = (e, sectionId, name) => {
+    e.preventDefault();
+    setActive(name);
+    setIsOpen(false);
+
+    const scrollTo = () => {
+      if (sectionId === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    if (window.location.pathname !== '/') {
+      // Navigate to home first, then scroll after React renders sections
+      window.history.pushState({}, '', '/');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      setTimeout(scrollTo, 200);
+    } else {
+      scrollTo();
+    }
   };
 
   return (
@@ -182,7 +203,7 @@ const Navbar = ({ theme, toggleTheme }) => {
                 <a
                   key={item.name}
                   href={item.href}
-                  onClick={() => handleNavClick(item.name)}
+                  onClick={(e) => handleSectionClick(e, item.sectionId, item.name)}
                   className={`group relative px-4 py-2 text-sm font-medium transition-colors duration-200 ${scrolled ? 'text-gray-600 hover:text-blue-600' : 'text-gray-300 hover:text-white'
                     }`}
                 >
@@ -203,8 +224,8 @@ const Navbar = ({ theme, toggleTheme }) => {
             {/* ── Desktop CTA + theme toggle ── */}
             <div className="hidden md:flex items-center gap-3">
               <motion.a
-                href="#contact"
-                onClick={() => handleNavClick('Contact')}
+                href="/#contact"
+                onClick={(e) => handleSectionClick(e, 'contact', 'Contact')}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
                 className="px-5 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-md shadow-blue-600/25 transition-all duration-200"
@@ -233,7 +254,7 @@ const Navbar = ({ theme, toggleTheme }) => {
                         className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-200 dark:border-slate-700 overflow-hidden z-50"
                       >
                         <a
-                          href="#dashboard"
+                          href="/dashboard"
                           onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         >
@@ -353,7 +374,7 @@ const Navbar = ({ theme, toggleTheme }) => {
                     variants={mobileItemVariants}
                     initial="hidden"
                     animate="visible"
-                    onClick={() => handleNavClick(item.name)}
+                    onClick={(e) => handleSectionClick(e, item.sectionId, item.name)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${active === item.name
                         ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
                         : 'text-gray-300 hover:text-white hover:bg-white/8'
@@ -382,7 +403,7 @@ const Navbar = ({ theme, toggleTheme }) => {
                 {isLoggedIn ? (
                   <>
                     <a
-                      href="#dashboard"
+                      href="/dashboard"
                       onClick={() => setIsOpen(false)}
                       className="mb-3 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all"
                     >
@@ -412,12 +433,12 @@ const Navbar = ({ theme, toggleTheme }) => {
                   </button>
                 )}
                 <motion.a
-                  href="#contact"
+                  href="/#contact"
                   custom={navItems.length}
                   variants={mobileItemVariants}
                   initial="hidden"
                   animate="visible"
-                  onClick={() => handleNavClick('Contact')}
+                  onClick={(e) => handleSectionClick(e, 'contact', 'Contact')}
                   className="block w-full text-center py-3 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-sm font-semibold shadow-lg shadow-blue-600/25 hover:from-blue-500 hover:to-cyan-400 transition-all duration-200"
                 >
                   Get Free Consultation
@@ -433,7 +454,7 @@ const Navbar = ({ theme, toggleTheme }) => {
         isOpen={isLoginModalOpen}
         onClose={() => {
           setIsLoginModalOpen(false);
-          if (window.location.pathname === '/login' || window.location.hash === '#login' || window.location.hash === '#/login') {
+          if (window.location.pathname === '/login') {
             window.history.pushState({}, '', '/');
             window.dispatchEvent(new PopStateEvent('popstate'));
           }

@@ -39,7 +39,8 @@ const LoginModal = ({ isOpen, onClose }) => {
         }
         setTimeout(() => {
           onClose();
-          window.location.hash = 'dashboard';
+          window.history.pushState({}, '', '/dashboard');
+          window.dispatchEvent(new PopStateEvent('popstate'));
         }, 1000);
       } else {
         setStatus({ type: 'error', message: data.message || 'Login failed' });

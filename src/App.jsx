@@ -23,12 +23,6 @@ import ClientPortalLogin from './pages/ClientPortalLogin';
 import ClientPortalDashboard from './pages/ClientPortalDashboard';
 
 const getCurrentRoute = () => {
-  const hashRoute = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
-
-  if (hashRoute) {
-    return hashRoute;
-  }
-
   return window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
 };
 
@@ -41,11 +35,9 @@ function App() {
   useEffect(() => {
     const handleRouteChange = () => setCurrentRoute(getCurrentRoute());
 
-    window.addEventListener('hashchange', handleRouteChange);
     window.addEventListener('popstate', handleRouteChange);
 
     return () => {
-      window.removeEventListener('hashchange', handleRouteChange);
       window.removeEventListener('popstate', handleRouteChange);
     };
   }, []);
@@ -162,7 +154,8 @@ function App() {
     if (isDashboard) {
       const token = localStorage.getItem('adminToken');
       if (!token) {
-        window.location.hash = 'home'; // Force redirect to home
+        window.history.pushState({}, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
         return null;
       }
       return <Dashboard />;

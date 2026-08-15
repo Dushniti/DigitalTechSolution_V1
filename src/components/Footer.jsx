@@ -7,19 +7,16 @@ const Footer = () => {
   const logoSrc = 'https://lh3.googleusercontent.com/p/AF1QipNgb3rNsf-wTFuX8iOk_T3vsGKySB2VGSUb3o-D=s1360-w1360-h1020-rw';
 
   const [currentPath, setCurrentPath] = useState(
-    () => window.location.pathname.replace(/^\//, '').replace(/\/$/, '') || window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '')
+    () => window.location.pathname.replace(/^\//, '').replace(/\/$/, '')
   );
 
   useEffect(() => {
     const update = () =>
       setCurrentPath(
-        window.location.pathname.replace(/^\//, '').replace(/\/$/, '') ||
-        window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '')
+        window.location.pathname.replace(/^\//, '').replace(/\/$/, '')
       );
-    window.addEventListener('hashchange', update);
     window.addEventListener('popstate', update);
     return () => {
-      window.removeEventListener('hashchange', update);
       window.removeEventListener('popstate', update);
     };
   }, []);
@@ -30,14 +27,13 @@ const Footer = () => {
   ];
 
   const quickLinks = [
-    { name: 'Home',            href: '#home',        route: '' },
-    { name: 'About Us',        href: '#about',       route: '' },
-    { name: 'Services',        href: '#services',    route: '' },
-    { name: 'Pricing',         href: '#/pricing',    route: 'pricing' },
-    { name: 'Portfolio',       href: '#portfolio',   route: '' },
-    { name: 'Contact',         href: '#contact',     route: '' },
-    { name: 'Career',          href: '#/career',     route: 'career' },
-    // { name: 'Our Team',        href: '/our-team',    route: 'our-team' },
+    { name: 'Home',      href: '/#home',      route: '',        sectionId: 'home' },
+    { name: 'About Us',  href: '/#about',     route: '',        sectionId: 'about' },
+    { name: 'Services',  href: '/#services',  route: '',        sectionId: 'services' },
+    { name: 'Pricing',   href: '/pricing',    route: 'pricing', sectionId: null },
+    { name: 'Portfolio', href: '/#portfolio', route: '',        sectionId: 'portfolio' },
+    { name: 'Contact',   href: '/#contact',   route: '',        sectionId: 'contact' },
+    { name: 'Career',    href: '/career',     route: 'career',  sectionId: null },
   ];
 
   const services = [
@@ -49,34 +45,35 @@ const Footer = () => {
     'UI/UX Design',
   ];
 
-  const navigateToPath = (path) => (event) => {
-    event.preventDefault();
-
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path);
-      window.dispatchEvent(new Event('routechange'));
-    }
-  };
-
   const navigateToSection = (sectionId) => (event) => {
     event.preventDefault();
 
     const scrollToSection = () => {
-      const targetElement = document.getElementById(sectionId);
-
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: 'smooth' });
+      if (sectionId === 'home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
       }
+      const targetElement = document.getElementById(sectionId);
+      if (targetElement) targetElement.scrollIntoView({ behavior: 'smooth' });
     };
 
     if (window.location.pathname !== '/') {
       window.history.pushState({}, '', '/');
-      window.dispatchEvent(new Event('routechange'));
-      setTimeout(scrollToSection, 0);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      setTimeout(scrollToSection, 200); // wait for React to render home sections
       return;
     }
 
     scrollToSection();
+  };
+
+  const navigateToPage = (path) => (event) => {
+    event.preventDefault();
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -149,14 +146,13 @@ const Footer = () => {
                   const isActive = link.route ? currentPath === link.route : false;
                   return (
                     <li key={index}>
-                      <motion.a
+                    <motion.a
                         href={link.href}
-                        onClick={link.route === 'our-team' ? (e) => {
-                          e.preventDefault();
-                          window.history.pushState({}, '', '/our-team');
-                          window.dispatchEvent(new PopStateEvent('popstate'));
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        } : undefined}
+                        onClick={
+                          link.sectionId
+                            ? navigateToSection(link.sectionId)
+                            : navigateToPage(link.href)
+                        }
                         whileHover={{ x: 4 }}
                         className={`text-sm flex items-center gap-1.5 transition-colors duration-200 ${
                           isActive ? 'text-blue-400 font-semibold' : 'text-gray-400 hover:text-white'
@@ -183,7 +179,7 @@ const Footer = () => {
                 {services.map((service, index) => (
                   <li key={index}>
                     <motion.a
-                      href="#services"
+                      href="/#services"
                       whileHover={{ x: 4 }}
                       className="text-sm text-gray-400 hover:text-white flex items-center gap-1.5 transition-colors duration-200"
                     >
@@ -279,9 +275,9 @@ const Footer = () => {
             © {currentYear} <span className="text-gray-400 font-medium">DigitalTechSolution</span>. All rights reserved.
           </p>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-xs text-gray-500">
-            <a href="#/privacy-policy" className="hover:text-white transition-colors duration-200">Privacy Policy</a>
-            <a href="#/terms-of-service" className="hover:text-white transition-colors duration-200">Terms of Service</a>
-            <a href="#/pricing" className="hover:text-white transition-colors duration-200">Pricing</a>
+            <a href="/privacy-policy" className="hover:text-white transition-colors duration-200">Privacy Policy</a>
+            <a href="/terms-of-service" className="hover:text-white transition-colors duration-200">Terms of Service</a>
+            <a href="/pricing" className="hover:text-white transition-colors duration-200">Pricing</a>
             <a href="#" className="hover:text-white transition-colors duration-200">Cookie Policy</a>
           </div>
         </motion.div>
