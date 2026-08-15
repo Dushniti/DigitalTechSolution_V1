@@ -1588,9 +1588,9 @@ const Dashboard = () => {
   const [expandedMenus, setExpandedMenus] = useState({});
   const toggleMenu = (id) => setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
   const [activeTab, setActiveTab] = useState(() => {
-    const hash = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
-    if (hash.startsWith('dashboard/')) {
-      return hash.split('/')[1] || 'overview';
+    const path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+    if (path.startsWith('dashboard/')) {
+      return path.split('/')[1] || 'overview';
     }
     return 'overview';
   });
@@ -1760,17 +1760,17 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
-      if (hash === 'dashboard') {
+    const handleRouteChange = () => {
+      const path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+      if (path === 'dashboard') {
         setActiveTab('overview');
-      } else if (hash.startsWith('dashboard/')) {
-        const tab = hash.split('/')[1];
+      } else if (path.startsWith('dashboard/')) {
+        const tab = path.split('/')[1];
         if (tab) setActiveTab(tab);
       }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
 
   const token = localStorage.getItem('adminToken');
@@ -1778,7 +1778,8 @@ const Dashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
-    window.location.hash = '';
+    window.history.pushState({}, '', '/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   const role = getRoleFromToken();
@@ -1918,7 +1919,10 @@ const Dashboard = () => {
                       if (isSidebarCollapsed) setIsSidebarCollapsed(false);
                       toggleMenu(id);
                     } else {
-                      window.location.hash = `dashboard/${id === 'overview' ? '' : id}`;
+                      const tabPath = id === 'overview' ? '/dashboard' : `/dashboard/${id}`;
+                      window.history.pushState({}, '', tabPath);
+                      window.dispatchEvent(new PopStateEvent('popstate'));
+                      setActiveTab(id);
                       setIsMobileMenuOpen(false);
                     }
                   }}
@@ -1944,7 +1948,9 @@ const Dashboard = () => {
                       <button
                         key={sub.id}
                         onClick={() => {
-                          window.location.hash = `dashboard/${sub.id}`;
+                          window.history.pushState({}, '', `/dashboard/${sub.id}`);
+                          window.dispatchEvent(new PopStateEvent('popstate'));
+                          setActiveTab(sub.id);
                           setIsMobileMenuOpen(false);
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === sub.id
@@ -2117,7 +2123,7 @@ const Dashboard = () => {
             </div>
 
             <button
-              onClick={() => { sessionStorage.removeItem('_dashRedirected'); window.location.hash = 'home'; }}
+              onClick={() => { sessionStorage.removeItem('_dashRedirected'); window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-sm transition-all"
             >
               <Home size={15} />
@@ -2141,7 +2147,12 @@ const Dashboard = () => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {activeTab === 'overview' && <DashboardOverview onNavigate={(id) => { window.location.hash = `dashboard/${id === 'overview' ? '' : id}`; }} />}
+            {activeTab === 'overview' && <DashboardOverview onNavigate={(id) => {
+              const tabPath = id === 'overview' ? '/dashboard' : `/dashboard/${id}`;
+              window.history.pushState({}, '', tabPath);
+              window.dispatchEvent(new PopStateEvent('popstate'));
+              setActiveTab(id);
+            }} />}
             {activeTab === 'attendance' && <AttendanceModule />}
             {activeTab === 'leaves' && <LeavesModule />}
             {activeTab === 'regularization' && <RegularizationModule />}
