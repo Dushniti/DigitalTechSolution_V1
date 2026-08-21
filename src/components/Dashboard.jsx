@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LogOut, LayoutDashboard, Users, MessageSquare,
-  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase, ChevronDown, Package, Layers, CreditCard, Palette, Key, Megaphone, MapPin, CheckCheck, BellOff
+  Pencil, Trash2, X, Check, AlertCircle, RefreshCw, Mail, Phone, Calendar, UserPlus, Home, Eye, Clock, CalendarDays, IndianRupee, ClipboardList, Building, Settings, Bell, FileText, BarChart2, Menu, Briefcase, ChevronDown, Package, Layers, CreditCard, Palette, Key, Megaphone, MapPin, CheckCheck, BellOff, MailOpen, MailCheck, MoreVertical
 } from 'lucide-react';
 import config from '../config';
 
@@ -588,71 +588,106 @@ const UsersModule = () => {
 };
 
 // ─── View Message Modal ───────────────────────────────────────────────────────
-const ViewMessageModal = ({ contact: c, onClose }) => (
-  <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <motion.div
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ scale: 0.95, opacity: 0 }}
-      className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-lg p-6"
-    >
-      {/* Header */}
-      <div className="flex justify-between items-start mb-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center text-white font-bold text-base shrink-0">
-            {c.name?.[0]?.toUpperCase() || 'U'}
-          </div>
-          <div>
-            <p className="font-bold text-gray-900 dark:text-white">{c.name}</p>
-            <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${c.status === 'new' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-              c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
+// ─── View Message Modal ───────────────────────────────────────────────────────
+const ViewMessageModal = ({ contact: c, onClose, onMarkRead, onMarkUnread, onDelete }) => {
+  useEffect(() => {
+    // Auto mark as read when modal opens (only if status is 'new' or 'unread')
+    if (c.status !== 'read' && onMarkRead) {
+      onMarkRead(c._id);
+    }
+  }, [c._id]);
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-lg p-6"
+      >
+        {/* Header */}
+        <div className="flex justify-between items-start mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center text-white font-bold text-base shrink-0">
+              {c.name?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 dark:text-white">{c.name}</p>
+              <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${
+                c.status === 'new' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
                 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
               }`}>{c.status || 'new'}</span>
+            </div>
           </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+          >
+            <X size={18} />
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
-        >
-          <X size={18} />
-        </button>
-      </div>
 
-      {/* Contact info */}
-      <div className="space-y-2 mb-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
-        {c.email && (
+        {/* Contact info */}
+        <div className="space-y-2 mb-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
+          {c.email && (
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <Mail size={14} className="shrink-0 text-blue-500" /> {c.email}
+            </div>
+          )}
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-            <Mail size={14} className="shrink-0 text-blue-500" /> {c.email}
+            <Phone size={14} className="shrink-0 text-blue-500" /> {c.phone}
           </div>
-        )}
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-          <Phone size={14} className="shrink-0 text-blue-500" /> {c.phone}
+          {c.submittedAt && (
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <Calendar size={14} className="shrink-0 text-blue-500" />
+              {new Date(c.submittedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </div>
+          )}
         </div>
-        {c.submittedAt && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-            <Calendar size={14} className="shrink-0 text-blue-500" />
-            {new Date(c.submittedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+
+        {/* Full message */}
+        <div>
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Message</p>
+          <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 max-h-64 overflow-y-auto">
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{c.message}</p>
           </div>
-        )}
-      </div>
-
-      {/* Full message */}
-      <div>
-        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Message</p>
-        <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 max-h-64 overflow-y-auto">
-          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{c.message}</p>
         </div>
-      </div>
 
-      <button
-        onClick={onClose}
-        className="mt-5 w-full py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-      >
-        Close
-      </button>
-    </motion.div>
-  </div>
-);
+        {/* Action buttons */}
+        <div className="mt-5 flex gap-2">
+          {c.status === 'read' ? (
+            <button
+              onClick={() => { onMarkUnread && onMarkUnread(c._id); onClose(); }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <MailOpen size={14} /> Mark Unread
+            </button>
+          ) : (
+            <button
+              onClick={() => { onMarkRead && onMarkRead(c._id); onClose(); }}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+            >
+              <MailCheck size={14} /> Mark Read
+            </button>
+          )}
+          <button
+            onClick={() => { onDelete && onDelete(c._id); onClose(); }}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <Trash2 size={14} /> Delete
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            <X size={14} /> Close
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 // ─── Contacts Module ──────────────────────────────────────────────────────────
 const ContactsModule = () => {
@@ -662,6 +697,10 @@ const ContactsModule = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [viewContact, setViewContact] = useState(null);
+  const [filter, setFilter] = useState('all'); // all | unread | read
+  const [actionLoading, setActionLoading] = useState({}); // { [id]: true }
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // id to delete
+  const [openMenuId, setOpenMenuId] = useState(null); // 3-dot dropdown
 
   const fetchContacts = async () => {
     setLoading(true);
@@ -671,7 +710,7 @@ const ContactsModule = () => {
       const data = await res.json();
       if (data.success) {
         setContacts(data.data || []);
-        setCurrentPage(1); // reset to first page on refresh
+        setCurrentPage(1);
       } else {
         setError(data.message || 'Failed to fetch contacts.');
       }
@@ -684,10 +723,66 @@ const ContactsModule = () => {
 
   useEffect(() => { fetchContacts(); }, []);
 
+  // ── Mark Read / Unread ──
+  const handleStatusChange = async (id, status) => {
+    setActionLoading(prev => ({ ...prev, [id]: true }));
+    try {
+      const res = await fetch(`${config.apiUrl}/contacts/${id}/status`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Optimistic local update
+        setContacts(prev => prev.map(c => c._id === id ? { ...c, status } : c));
+        // Also update viewContact if open
+        setViewContact(prev => prev && prev._id === id ? { ...prev, status } : prev);
+      } else {
+        setError(data.message || 'Failed to update status.');
+      }
+    } catch {
+      setError('Cannot connect to server.');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  // ── Delete ──
+  const handleDelete = async (id) => {
+    setActionLoading(prev => ({ ...prev, [id]: true }));
+    try {
+      const res = await fetch(`${config.apiUrl}/contacts/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setContacts(prev => prev.filter(c => c._id !== id));
+        setDeleteConfirm(null);
+      } else {
+        setError(data.message || 'Failed to delete contact.');
+      }
+    } catch {
+      setError('Cannot connect to server.');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [id]: false }));
+    }
+  };
+
+  // ── Filtered contacts ──
+  const filtered = contacts.filter(c => {
+    if (filter === 'unread') return c.status === 'new' || c.status === 'unread';
+    if (filter === 'read') return c.status === 'read';
+    return true;
+  });
+
+  const unreadCount = contacts.filter(c => c.status === 'new' || c.status === 'unread').length;
+
   // ── Pagination calc ──
-  const totalPages = Math.max(1, Math.ceil(contacts.length / perPage));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const startIndex = (currentPage - 1) * perPage;
-  const paginated = contacts.slice(startIndex, startIndex + perPage);
+  const paginated = filtered.slice(startIndex, startIndex + perPage);
 
   const handlePerPageChange = (val) => {
     setPerPage(val);
@@ -698,7 +793,6 @@ const ContactsModule = () => {
     if (p >= 1 && p <= totalPages) setCurrentPage(p);
   };
 
-  // Build page numbers with ellipsis
   const buildPageNumbers = () => {
     const pages = [];
     if (totalPages <= 7) {
@@ -715,25 +809,71 @@ const ContactsModule = () => {
     return pages;
   };
 
+  const statusBadge = (status) => {
+    if (status === 'read') return 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400';
+    if (status === 'unread') return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+    return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'; // new
+  };
+
   return (
     <div>
       {/* View Message Modal */}
       <AnimatePresence>
         {viewContact && (
-          <ViewMessageModal contact={viewContact} onClose={() => setViewContact(null)} />
+          <ViewMessageModal
+            contact={viewContact}
+            onClose={() => setViewContact(null)}
+            onMarkRead={(id) => handleStatusChange(id, 'read')}
+            onMarkUnread={(id) => handleStatusChange(id, 'unread')}
+            onDelete={(id) => setDeleteConfirm(id)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirm && (
+          <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 w-full max-w-sm p-6 text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={22} className="text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete Message?</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Yeh message permanently delete ho jaayega. Kya aap sure hain?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteConfirm)}
+                  disabled={actionLoading[deleteConfirm]}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-60"
+                >
+                  {actionLoading[deleteConfirm] ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* ── Header ── */}
-      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Contact Messages</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            {contacts.length} total &bull; showing {startIndex + 1}–{Math.min(startIndex + perPage, contacts.length)}
+            {contacts.length} total &bull; {unreadCount > 0 && <span className="text-blue-600 font-medium">{unreadCount} unread</span>}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Per-page selector */}
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <span className="hidden sm:inline font-medium">Show:</span>
             <div className="flex rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
@@ -741,10 +881,11 @@ const ContactsModule = () => {
                 <button
                   key={n}
                   onClick={() => handlePerPageChange(n)}
-                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${perPage === n
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
-                    }`}
+                  className={`px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    perPage === n
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+                  }`}
                 >
                   {n}
                 </button>
@@ -760,6 +901,30 @@ const ContactsModule = () => {
         </div>
       </div>
 
+      {/* ── Filter Tabs ── */}
+      <div className="flex gap-2 mb-5">
+        {[
+          { key: 'all', label: 'All', count: contacts.length },
+          { key: 'unread', label: 'Unread', count: contacts.filter(c => c.status === 'new' || c.status === 'unread').length },
+          { key: 'read', label: 'Read', count: contacts.filter(c => c.status === 'read').length },
+        ].map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => { setFilter(tab.key); setCurrentPage(1); }}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors border ${
+              filter === tab.key
+                ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            {tab.label}
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+              filter === tab.key ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400'
+            }`}>{tab.count}</span>
+          </button>
+        ))}
+      </div>
+
       {error && (
         <div className="mb-4 flex items-center gap-2 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm border border-red-200 dark:border-red-800">
           <AlertCircle size={16} /> {error}
@@ -770,43 +935,109 @@ const ContactsModule = () => {
         <div className="flex items-center justify-center py-16">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : contacts.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800">
           <MessageSquare className="w-12 h-12 text-gray-300 dark:text-slate-600 mb-3" />
-          <p className="text-gray-500 dark:text-gray-400 font-medium">No messages yet</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">
+            {filter === 'all' ? 'No messages yet' : `No ${filter} messages`}
+          </p>
         </div>
       ) : (
         <>
           {/* ── Cards grid ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout">
               {paginated.map((c, i) => (
                 <motion.div
                   key={c._id}
+                  layout
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: i * 0.04 }}
-                  className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-sm p-5"
+                  className={`bg-white dark:bg-slate-900 rounded-2xl border shadow-sm p-5 transition-colors ${
+                    c.status !== 'read'
+                      ? 'border-blue-200 dark:border-blue-800/50 shadow-blue-50 dark:shadow-none'
+                      : 'border-gray-200 dark:border-slate-800'
+                  }`}
                 >
+                  {/* Card header */}
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                        {c.name?.[0]?.toUpperCase() || 'U'}
+                      <div className="relative">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                          {c.name?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                        {c.status !== 'read' && (
+                          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-blue-500 rounded-full border-2 border-white dark:border-slate-900" />
+                        )}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{c.name}</p>
-                        <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${c.status === 'new' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                          c.status === 'read' ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-400' :
-                            'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          }`}>{c.status || 'new'}</span>
+                        <p className={`text-sm ${c.status !== 'read' ? 'font-bold text-gray-900 dark:text-white' : 'font-semibold text-gray-700 dark:text-gray-300'}`}>
+                          {c.name}
+                        </p>
+                        <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-0.5 ${statusBadge(c.status)}`}>
+                          {c.status || 'new'}
+                        </span>
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">
-                      {c.submittedAt ? new Date(c.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : ''}
-                    </span>
+                    {/* Date + 3-dot menu */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {c.submittedAt ? new Date(c.submittedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : ''}
+                      </span>
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === c._id ? null : c._id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        >
+                          <MoreVertical size={15} />
+                        </button>
+                        {/* Dropdown */}
+                        {openMenuId === c._id && (
+                          <>
+                            {/* Backdrop */}
+                            <div className="fixed inset-0 z-30" onClick={() => setOpenMenuId(null)} />
+                            <div className="absolute right-0 top-8 z-40 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 py-1 overflow-hidden">
+                              <button
+                                onClick={() => { setViewContact(c); setOpenMenuId(null); }}
+                                className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                              >
+                                <Eye size={14} className="text-blue-500" /> View Message
+                              </button>
+                              {c.status === 'read' ? (
+                                <button
+                                  onClick={() => { handleStatusChange(c._id, 'unread'); setOpenMenuId(null); }}
+                                  disabled={actionLoading[c._id]}
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                                >
+                                  <MailOpen size={14} className="text-yellow-500" /> Mark Unread
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => { handleStatusChange(c._id, 'read'); setOpenMenuId(null); }}
+                                  disabled={actionLoading[c._id]}
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                                >
+                                  <MailCheck size={14} className="text-green-500" /> Mark Read
+                                </button>
+                              )}
+                              <div className="h-px bg-gray-100 dark:bg-slate-700 my-1" />
+                              <button
+                                onClick={() => { setDeleteConfirm(c._id); setOpenMenuId(null); }}
+                                disabled={actionLoading[c._id]}
+                                className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                              >
+                                <Trash2 size={14} /> Delete
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Contact details */}
                   <div className="space-y-1.5 mb-3">
                     {c.email && (
                       <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
@@ -823,17 +1054,18 @@ const ContactsModule = () => {
                     )}
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3">
+                  {/* Message preview */}
+                  <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 mb-3">
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">{c.message}</p>
-                    {(c.message?.length > 60 || c.message?.includes('\n')) && (
-                      <button
-                        onClick={() => setViewContact(c)}
-                        className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                      >
-                        <Eye size={12} /> View full message
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setViewContact(c)}
+                      className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                    >
+                      <Eye size={12} /> View full message
+                    </button>
                   </div>
+
+
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -846,7 +1078,6 @@ const ContactsModule = () => {
                 Page <span className="font-semibold text-gray-800 dark:text-gray-200">{currentPage}</span> of <span className="font-semibold text-gray-800 dark:text-gray-200">{totalPages}</span>
               </p>
               <div className="flex items-center gap-1.5">
-                {/* Prev */}
                 <button
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
@@ -854,8 +1085,6 @@ const ContactsModule = () => {
                 >
                   ← Prev
                 </button>
-
-                {/* Page numbers */}
                 {buildPageNumbers().map((p, idx) =>
                   p === '...' ? (
                     <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 text-sm select-none">…</span>
@@ -863,17 +1092,16 @@ const ContactsModule = () => {
                     <button
                       key={p}
                       onClick={() => goToPage(p)}
-                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${p === currentPage
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-300'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700'
-                        }`}
+                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${
+                        p === currentPage
+                          ? 'bg-blue-600 text-white shadow-sm shadow-blue-300'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700'
+                      }`}
                     >
                       {p}
                     </button>
                   )
                 )}
-
-                {/* Next */}
                 <button
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
