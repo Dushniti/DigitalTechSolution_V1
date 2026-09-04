@@ -256,6 +256,25 @@ const InvoiceManagement = () => {
   });
 
   const canManage = role === 'Admin' || role === 'Company Admin' || role === 'User';
+  const canDelete = role === 'Admin' || role === 'Company Admin';
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this invoice?')) return;
+    try {
+      const res = await fetch(`${config.apiUrl}/invoices/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchData();
+      } else {
+        setError(data.message || 'Failed to delete invoice');
+      }
+    } catch {
+      setError('Network error while deleting');
+    }
+  };
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -400,6 +419,7 @@ const InvoiceManagement = () => {
                   <td className="px-6 py-4 text-right space-x-2 flex justify-end">
                     <button onClick={() => setViewInvoice(inv)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><FileText size={16} /></button>
                     {canManage && <button onClick={() => openEdit(inv)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Edit2 size={16} /></button>}
+                    {canDelete && <button onClick={() => handleDelete(inv._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>}
                   </td>
                 </tr>
               ))}
