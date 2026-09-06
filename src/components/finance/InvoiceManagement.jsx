@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit2, Trash2, X, Search, FileText, Download, Printer, CheckCircle, AlertCircle, RefreshCw, FileSignature } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search, FileText, Download, Printer, CheckCircle, AlertCircle, RefreshCw, FileSignature, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReactToPrint } from 'react-to-print';
 import config from '../../config';
@@ -41,6 +41,12 @@ const InvoiceManagement = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [role, setRole] = useState(null);
   const [companyProfile, setCompanyProfile] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 5000);
+  };
 
   // PDF Printing states
   const [viewInvoice, setViewInvoice] = useState(null);
@@ -219,6 +225,28 @@ const InvoiceManagement = () => {
       setError('Network error');
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handleSendMail = async (inv) => {
+    if (!window.confirm(`Send invoice to ${inv.customerDetails?.company_name || 'customer'}?`)) return;
+    
+    showToast('success', 'Sending email...');
+    
+    try {
+      const res = await fetch(`${config.apiUrl}/invoices/${inv._id}/send-invoice`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        showToast('success', '✅ Invoice email sent successfully!');
+      } else {
+        showToast('error', data.message || 'Failed to send email');
+      }
+    } catch {
+      showToast('error', 'Network error while sending email');
     }
   };
 
@@ -417,9 +445,10 @@ const InvoiceManagement = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-2 flex justify-end">
-                    <button onClick={() => setViewInvoice(inv)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><FileText size={16} /></button>
-                    {canManage && <button onClick={() => openEdit(inv)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Edit2 size={16} /></button>}
-                    {canDelete && <button onClick={() => handleDelete(inv._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>}
+                    <button onClick={() => handleSendMail(inv)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Send Email"><Send size={16} /></button>
+                    <button onClick={() => setViewInvoice(inv)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Invoice"><FileText size={16} /></button>
+                    {canManage && <button onClick={() => openEdit(inv)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit Invoice"><Edit2 size={16} /></button>}
+                    {canDelete && <button onClick={() => handleDelete(inv._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Invoice"><Trash2 size={16} /></button>}
                   </td>
                 </tr>
               ))}
@@ -809,6 +838,28 @@ const InvoiceManagement = () => {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className={`fixed bottom-6 left-1/2 z-[100] px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold max-w-md border ${
+              toast.type === 'success'
+                ? 'bg-green-600 text-white border-green-700'
+                : toast.type === 'warning'
+                  ? 'bg-yellow-500 text-white border-yellow-600'
+                  : 'bg-red-600 text-white border-red-700'
+            }`}
+          >
+            {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            {toast.message}
+            <button onClick={() => setToast(null)} className="ml-2 p-1 hover:bg-white/20 rounded-lg transition-colors"><X size={14} /></button>
+          </motion.div>
         )}
       </AnimatePresence>
 

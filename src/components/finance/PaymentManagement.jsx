@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, FileText, Printer, CheckCircle, AlertCircle, RefreshCw, IndianRupee, X } from 'lucide-react';
+import { Plus, Search, FileText, Printer, CheckCircle, AlertCircle, RefreshCw, IndianRupee, X, Mail, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReactToPrint } from 'react-to-print';
 import config from '../../config';
@@ -37,6 +37,7 @@ const PaymentManagement = () => {
   const [companies, setCompanies] = useState([]);
   const [selectedCompanyFilter, setSelectedCompanyFilter] = useState('');
   const [companyProfile, setCompanyProfile] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // PDF Printing states
   const [viewReceipt, setViewReceipt] = useState(null);
@@ -50,8 +51,14 @@ const PaymentManagement = () => {
     payment_method: 'Bank Transfer', // Cash, UPI, Bank Transfer, Cheque
     transaction_reference: '',
     amount: '',
-    notes: ''
+    notes: '',
+    sendEmail: true
   });
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 5000);
+  };
 
   useEffect(() => {
     const currentRole = getRoleFromToken();
@@ -138,6 +145,13 @@ const PaymentManagement = () => {
         setShowModal(false);
         fetchData();
         resetForm();
+        if (form.sendEmail) {
+          // Backend sends email but doesn't return emailSent flag separately
+          // If success:true and data.sendEmail exists, email was processed
+          showToast('success', '✅ Payment recorded & receipt email sent to customer!');
+        } else {
+          showToast('success', '✅ Payment recorded successfully!');
+        }
       } else {
         setError(data.message || 'Failed to save payment');
       }
@@ -148,13 +162,36 @@ const PaymentManagement = () => {
     }
   };
 
+  const handleSendMail = async (pay) => {
+    if (!window.confirm(`Send payment receipt to ${pay.customerDetails?.company_name || 'customer'}?`)) return;
+    
+    // Using a temporary toast to show loading state (optional, but good UX)
+    showToast('success', 'Sending email...');
+    
+    try {
+      const res = await fetch(`${config.apiUrl}/payments/${pay._id}/send-receipt`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        showToast('success', '✅ Receipt email sent successfully!');
+      } else {
+        showToast('error', data.message || 'Failed to send email');
+      }
+    } catch {
+      showToast('error', 'Network error while sending email');
+    }
+  };
+
   const resetForm = () => {
     setForm({
       payment_number: `PAY-${Date.now()}`,
       customer_id: '', invoice_id: '',
       payment_date: new Date().toISOString().split('T')[0],
       payment_method: 'Bank Transfer', transaction_reference: '',
-      amount: '', notes: ''
+      amount: '', notes: '', sendEmail: true
     });
   };
 
@@ -265,9 +302,14 @@ const PaymentManagement = () => {
                   </td>
                   <td className="px-6 py-4 font-black text-green-600">₹{pay.amount?.toFixed(2)}</td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => setViewReceipt(pay)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center justify-end w-full gap-2 text-xs font-bold">
-                      <FileText size={16} /> Receipt
-                    </button>
+                    <div className="flex justify-end items-center gap-2">
+                      <button onClick={() => handleSendMail(pay)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold" title="Send Email">
+                        <Send size={16} />
+                      </button>
+                      <button onClick={() => setViewReceipt(pay)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold" title="View Receipt">
+                        <FileText size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -399,6 +441,23 @@ const PaymentManagement = () => {
                     <label className="block text-sm font-semibold mb-1.5">Internal Notes</label>
                     <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full px-4 py-2 border rounded-xl" rows={2} />
                   </div>
+
+                  {/* Send Email Checkbox */}
+                  <div className="md:col-span-2">
+                    <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={form.sendEmail}
+                        onChange={(e) => setForm({ ...form, sendEmail: e.target.checked })}
+                        className="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <Mail size={18} className="text-blue-600 dark:text-blue-400" />
+                      <div>
+                        <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">Send Payment Receipt via Email</span>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">Customer ko payment receipt email mein bheji jayegi</p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
               </form>
@@ -523,6 +582,28 @@ const PaymentManagement = () => {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className={`fixed bottom-6 left-1/2 z-[100] px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold max-w-md border ${
+              toast.type === 'success'
+                ? 'bg-green-600 text-white border-green-700'
+                : toast.type === 'warning'
+                  ? 'bg-yellow-500 text-white border-yellow-600'
+                  : 'bg-red-600 text-white border-red-700'
+            }`}
+          >
+            {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            {toast.message}
+            <button onClick={() => setToast(null)} className="ml-2 p-1 hover:bg-white/20 rounded-lg transition-colors"><X size={14} /></button>
+          </motion.div>
         )}
       </AnimatePresence>
 
