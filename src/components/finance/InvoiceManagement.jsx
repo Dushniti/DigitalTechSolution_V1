@@ -426,7 +426,7 @@ const InvoiceManagement = () => {
                 <tr key={inv._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
                   <td className="px-6 py-4 font-semibold text-blue-600 dark:text-blue-400">{inv.invoice_number}</td>
                   <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    {inv.customerDetails?.company_name || 'N/A'}
+                    {inv.customerDetails?.company_name || inv.customerDetails?.customer_name || 'N/A'}
                   </td>
                   <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                     <div>{new Date(inv.invoice_date).toLocaleDateString()}</div>
@@ -584,7 +584,7 @@ const InvoiceManagement = () => {
                         .filter(w => w.status !== 'Draft')
                         .filter(w => role === 'Admin' ? w.company_id === form.company_id : true)
                         .map(w => (
-                          <option key={w._id} value={w._id}>{w.work_order_number} ({w.customerDetails?.company_name})</option>
+                          <option key={w._id} value={w._id}>{w.work_order_number} ({w.customerDetails?.company_name || w.customerDetails?.customer_name})</option>
                         ))}
                     </select>
                   </div>
@@ -594,7 +594,7 @@ const InvoiceManagement = () => {
                       <option value="">Select Customer</option>
                       {customers
                         .filter(c => role === 'Admin' ? c.company_id === form.company_id : true)
-                        .map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
+                        .map(c => <option key={c._id} value={c._id}>{c.company_name || c.customer_name}</option>)}
                     </select>
                   </div>
                   <div>
@@ -750,7 +750,7 @@ const InvoiceManagement = () => {
                   <div className="flex justify-between mb-8 gap-8">
                     <div className="flex-1">
                       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Billed To:</h3>
-                      <div className="font-bold text-lg text-gray-800">{viewInvoice.customerDetails?.company_name}</div>
+                      <div className="font-bold text-lg text-gray-800">{viewInvoice.customerDetails?.company_name || viewInvoice.customerDetails?.customer_name}</div>
                       <div className="text-sm text-gray-600 leading-relaxed">
                         {viewInvoice.customerDetails?.email}<br />
                         {viewInvoice.customerDetails?.phone}<br />
