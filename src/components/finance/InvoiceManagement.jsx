@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit2, Trash2, X, Search, FileText, Download, Printer, CheckCircle, AlertCircle, RefreshCw, FileSignature, Send } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search, FileText, Download, Printer, CheckCircle, AlertCircle, RefreshCw, FileSignature, Send, Link } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReactToPrint } from 'react-to-print';
 import config from '../../config';
@@ -230,16 +230,16 @@ const InvoiceManagement = () => {
 
   const handleSendMail = async (inv) => {
     if (!window.confirm(`Send invoice to ${inv.customerDetails?.company_name || 'customer'}?`)) return;
-    
+
     showToast('success', 'Sending email...');
-    
+
     try {
       const res = await fetch(`${config.apiUrl}/invoices/${inv._id}/send-invoice`, {
         method: 'POST',
         headers: getAuthHeaders()
       });
       const data = await res.json();
-      
+
       if (data.success) {
         showToast('success', '✅ Invoice email sent successfully!');
       } else {
@@ -445,6 +445,9 @@ const InvoiceManagement = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-2 flex justify-end">
+                    {inv.payment_link_url && (
+                      <button onClick={() => { navigator.clipboard.writeText(inv.payment_link_url); showToast('success', 'Payment Link Copied!'); }} className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Copy Payment Link"><Link size={16} /></button>
+                    )}
                     <button onClick={() => handleSendMail(inv)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Send Email"><Send size={16} /></button>
                     <button onClick={() => setViewInvoice(inv)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Invoice"><FileText size={16} /></button>
                     {canManage && <button onClick={() => openEdit(inv)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit Invoice"><Edit2 size={16} /></button>}
@@ -510,11 +513,10 @@ const InvoiceManagement = () => {
                     <button
                       key={p}
                       onClick={() => setCurrentPage(p)}
-                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${
-                        currentPage === p
+                      className={`w-8 h-8 rounded-lg text-sm font-semibold transition-colors ${currentPage === p
                           ? 'bg-blue-600 text-white shadow-sm'
                           : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-700'
-                      }`}
+                        }`}
                     >{p}</button>
                   )
                 )}
@@ -559,7 +561,7 @@ const InvoiceManagement = () => {
                         </label>
                         {editingId ? (
                           <div className="w-full px-4 py-2 border-2 border-gray-200 dark:border-slate-700 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 font-semibold flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                             {companies.find(c => c._id === form.company_id)?.company_name || 'Company not found'}
                             <span className="ml-auto text-xs text-gray-400 font-normal">(cannot be changed)</span>
                           </div>
@@ -769,6 +771,7 @@ const InvoiceManagement = () => {
                     </div>
                   </div>
 
+
                   {/* Items */}
                   <table className="w-full mb-8">
                     <thead>
@@ -848,13 +851,12 @@ const InvoiceManagement = () => {
             initial={{ opacity: 0, y: 50, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className={`fixed bottom-6 left-1/2 z-[100] px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold max-w-md border ${
-              toast.type === 'success'
+            className={`fixed bottom-6 left-1/2 z-[100] px-6 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold max-w-md border ${toast.type === 'success'
                 ? 'bg-green-600 text-white border-green-700'
                 : toast.type === 'warning'
                   ? 'bg-yellow-500 text-white border-yellow-600'
                   : 'bg-red-600 text-white border-red-700'
-            }`}
+              }`}
           >
             {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
             {toast.message}
