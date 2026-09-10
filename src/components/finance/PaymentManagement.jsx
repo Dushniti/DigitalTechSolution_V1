@@ -163,7 +163,7 @@ const PaymentManagement = () => {
   };
 
   const handleSendMail = async (pay) => {
-    if (!window.confirm(`Send payment receipt to ${pay.customerDetails?.company_name || 'customer'}?`)) return;
+    if (!window.confirm(`Send payment receipt to ${pay.customerDetails?.company_name || pay.customerDetails?.customer_name || 'customer'}?`)) return;
     
     // Using a temporary toast to show loading state (optional, but good UX)
     showToast('success', 'Sending email...');
@@ -204,7 +204,7 @@ const PaymentManagement = () => {
 
   const filteredPayments = payments.filter(p =>
     p.payment_number?.toLowerCase().includes(search.toLowerCase()) ||
-    p.customerDetails?.company_name?.toLowerCase().includes(search.toLowerCase()) ||
+    (p.customerDetails?.company_name || p.customerDetails?.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
     p.receiptDetails?.receipt_number?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -288,7 +288,7 @@ const PaymentManagement = () => {
                 <tr key={pay._id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
                   <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{pay.receiptDetails?.receipt_number || 'N/A'}</td>
                   <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    {pay.customerDetails?.company_name || 'N/A'}
+                    {pay.customerDetails?.company_name || pay.customerDetails?.customer_name || 'N/A'}
                   </td>
                   <td className="px-6 py-4 font-mono text-xs text-blue-600">
                     {pay.invoiceDetails?.invoice_number || 'Advance/Other'}
@@ -405,7 +405,7 @@ const PaymentManagement = () => {
                     <select value={form.invoice_id} onChange={(e) => handleInvoiceSelect(e.target.value)} className="w-full px-4 py-2 border rounded-xl bg-white">
                       <option value="">Select Pending Invoice...</option>
                       {invoices.map(i => (
-                        <option key={i._id} value={i._id}>{i.invoice_number} (Bal: ₹{i.balance_amount}) - {i.customerDetails?.company_name}</option>
+                        <option key={i._id} value={i._id}>{i.invoice_number} (Bal: ₹{i.balance_amount}) - {i.customerDetails?.company_name || i.customerDetails?.customer_name}</option>
                       ))}
                     </select>
                   </div>
@@ -414,7 +414,7 @@ const PaymentManagement = () => {
                     <label className="block text-sm font-semibold mb-1.5">Customer*</label>
                     <select required value={form.customer_id} onChange={(e) => setForm({ ...form, customer_id: e.target.value })} className="w-full px-4 py-2 border rounded-xl bg-white" disabled={!!form.invoice_id}>
                       <option value="">Select Customer</option>
-                      {customers.map(c => <option key={c._id} value={c._id}>{c.company_name}</option>)}
+                      {customers.map(c => <option key={c._id} value={c._id}>{c.company_name || c.customer_name}</option>)}
                     </select>
                   </div>
 
@@ -524,7 +524,7 @@ const PaymentManagement = () => {
                   <div className="flex justify-between mb-6 sm:mb-8 gap-8">
                     <div className="flex-1">
                       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Received From:</h3>
-                      <div className="font-bold text-lg text-gray-800">{viewReceipt.customerDetails?.company_name || 'N/A'}</div>
+                      <div className="font-bold text-lg text-gray-800">{viewReceipt.customerDetails?.company_name || viewReceipt.customerDetails?.customer_name || 'N/A'}</div>
                       <div className="text-sm text-gray-600 leading-relaxed">
                         {viewReceipt.customerDetails?.email}<br />
                         {viewReceipt.customerDetails?.phone}<br />
