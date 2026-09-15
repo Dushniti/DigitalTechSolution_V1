@@ -141,7 +141,7 @@ const HolidaysTab = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Holiday Name</label>
-                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-transparent" />
+                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value.replace(/[^a-zA-Z\\s]/g, '')})} className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-transparent" />
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">Date</label>

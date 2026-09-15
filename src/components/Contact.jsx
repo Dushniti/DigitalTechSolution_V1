@@ -1,8 +1,9 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, Clock, ArrowRight } from 'lucide-react';
 import config from '../config';
+import { countryCodes } from '../data/countryCodes';
 
 const Contact = () => {
   // Helper: fetch with a 60s timeout to handle Render cold starts
@@ -25,6 +26,7 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    countryCode: '+91',
     phone: '',
     message: ''
   });
@@ -92,9 +94,13 @@ const Contact = () => {
   };
 
   const handleChange = (e) => {
+    let value = e.target.value;
+    if (e.target.name === 'phone') {
+      value = value.replace(/[^0-9]/g, '');
+    }
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
     // Clear status when user starts typing
     if (status.message) {
@@ -293,6 +299,10 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
+      const payload = {
+        ...formData,
+        phone: `${formData.countryCode} ${formData.phone}`
+      };
       const response = await fetchWithTimeout(`${config.apiUrl}/contact`, {
         method: 'POST',
         headers: {
@@ -300,14 +310,14 @@ const Contact = () => {
           'Accept': 'application/json',
         },
         mode: 'cors',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
       
       if (data.success) {
         setStatus({ type: 'success', message: data.message });
-        setFormData({ name: '', email: '', phone: '', message: '' });
+        setFormData({ name: '', email: '', countryCode: '+91', phone: '', message: '' });
       } else {
         setStatus({ type: 'error', message: data.message });
       }
@@ -432,16 +442,30 @@ const Contact = () => {
                   <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">
                     Phone Number <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all duration-200 text-sm"
-                    placeholder="+91 XXXXX XXXXX"
-                  />
+                  <div className="flex gap-2">
+                    <select
+                      name="countryCode"
+                      value={formData.countryCode}
+                      onChange={handleChange}
+                      className="w-1/3 md:w-1/4 px-2 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all duration-200 text-sm"
+                    >
+                      {countryCodes.map(({ code, country }) => (
+                        <option key={`${code}-${country}`} value={code}>
+                          {code} ({country})
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all duration-200 text-sm"
+                      placeholder="XXXXX XXXXX"
+                    />
+                  </div>
                 </div>
 
                 <div>
