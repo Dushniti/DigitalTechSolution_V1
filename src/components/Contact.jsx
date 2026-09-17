@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send, Clock, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Clock, ArrowRight, ChevronDown } from 'lucide-react';
 import config from '../config';
 import { countryCodes } from '../data/countryCodes';
 
@@ -60,6 +60,7 @@ const Contact = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showGetStartedModal, setShowGetStartedModal] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [status, setStatus] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
 
@@ -443,18 +444,38 @@ const Contact = () => {
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2">
-                    <select
-                      name="countryCode"
-                      value={formData.countryCode}
-                      onChange={handleChange}
-                      className="w-1/3 md:w-1/4 px-2 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all duration-200 text-sm"
-                    >
-                      {countryCodes.map(({ code, country }) => (
-                        <option key={`${code}-${country}`} value={code}>
-                          {code} ({country})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                        className="w-[100px] sm:w-[110px] h-full flex items-center justify-between px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 hover:bg-gray-100 transition-all duration-200 text-sm"
+                      >
+                        <span className="font-semibold text-gray-700">{formData.countryCode}</span>
+                        <ChevronDown className="w-4 h-4 text-gray-500 shrink-0 ml-1" />
+                      </button>
+                      
+                      {showCountryDropdown && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setShowCountryDropdown(false)} />
+                          <div className="absolute top-full left-0 mt-2 w-[180px] max-h-60 overflow-y-auto bg-white border border-gray-100 rounded-xl shadow-xl z-50 py-2">
+                            {countryCodes.map(({ code, country }) => (
+                              <button
+                                key={`${code}-${country}`}
+                                type="button"
+                                onClick={() => {
+                                  handleChange({ target: { name: 'countryCode', value: code } });
+                                  setShowCountryDropdown(false);
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 focus:bg-blue-50 focus:outline-none transition-colors flex items-center justify-between group"
+                              >
+                                <span className="font-bold text-gray-700 group-hover:text-blue-600">{code}</span>
+                                <span className="text-gray-400 text-xs truncate pl-2">({country})</span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                     <input
                       type="tel"
                       id="phone"
